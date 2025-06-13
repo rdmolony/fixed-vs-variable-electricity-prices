@@ -106,8 +106,8 @@ const Index = () => {
             </div>
           </Carousel>
           
-          {/* Previous Button Context Text - Separate Div */}
-          <div className="absolute -left-32 top-1/2 translate-y-12 flex justify-center">
+          {/* Previous Button Context Text - Above Button */}
+          <div className="absolute -left-32 top-1/2 -translate-y-20 flex justify-center">
             <div className="text-center max-w-24">
               <p className="text-xs text-gray-600 font-medium leading-tight">
                 {getPreviousScenario().switchText}
@@ -115,8 +115,8 @@ const Index = () => {
             </div>
           </div>
 
-          {/* Next Button Context Text - Separate Div */}
-          <div className="absolute -right-32 top-1/2 translate-y-12 flex justify-center">
+          {/* Next Button Context Text - Above Button */}
+          <div className="absolute -right-32 top-1/2 -translate-y-20 flex justify-center">
             <div className="text-center max-w-24">
               <p className="text-xs text-gray-600 font-medium leading-tight">
                 {getNextScenario().switchText}
