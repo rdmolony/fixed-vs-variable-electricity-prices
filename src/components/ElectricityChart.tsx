@@ -1,3 +1,4 @@
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
 
@@ -18,6 +19,11 @@ const generateDemandForHour = (hour: number) => {
     return 11; // Full 11kW charging
   }
   return 0; // No demand during other hours
+};
+
+// Generate fixed tariff price for comparison
+const generateFixedPriceForHour = (hour: number) => {
+  return (hour >= 23 || hour < 8) ? 20 : 30;
 };
 
 // Generate price data based on scenario
@@ -62,11 +68,13 @@ const generateHourlyData = (scenario: Scenario) => {
   for (let hour = 0; hour < 24; hour++) {
     const price = Math.round(generatePriceForHour(hour, scenario) * 10) / 10;
     const demand = generateDemandForHour(hour);
+    const fixedPrice = generateFixedPriceForHour(hour);
 
     data.push({
       hour: `${hour.toString().padStart(2, '0')}:00`,
       price,
       demand,
+      fixedPrice,
       isPeakPrice: price > 30
     });
   }
@@ -80,13 +88,19 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
     if (active && payload && payload.length) {
       const priceData = payload.find((p: any) => p.dataKey === 'price');
       const demandData = payload.find((p: any) => p.dataKey === 'demand');
+      const fixedPriceData = payload.find((p: any) => p.dataKey === 'fixedPrice');
       
       return (
         <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-lg p-3 shadow-lg">
           <p className="font-semibold text-gray-800">{`Time: ${label}`}</p>
           {priceData && (
             <p className="text-blue-600">
-              {`Price: ${priceData.value}p/kWh`}
+              {`Wholesale Price: ${priceData.value}p/kWh`}
+            </p>
+          )}
+          {fixedPriceData && scenario !== 'fixed' && (
+            <p className="text-gray-500">
+              {`Fixed Tariff: ${fixedPriceData.value}p/kWh`}
             </p>
           )}
           {demandData && (
@@ -134,7 +148,7 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
             wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }}
           />
           
-          {/* Price line */}
+          {/* Main price line */}
           <Line
             yAxisId="price"
             type="monotone"
@@ -143,8 +157,23 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
             strokeWidth={3}
             dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-            name="Electricity Price (p/kWh)"
+            name={scenario === 'fixed' ? 'Fixed Tariff Price (p/kWh)' : 'Wholesale Price (p/kWh)'}
           />
+          
+          {/* Fixed tariff overlay for wholesale scenarios */}
+          {scenario !== 'fixed' && (
+            <Line
+              yAxisId="price"
+              type="monotone"
+              dataKey="fixedPrice"
+              stroke="#9ca3af"
+              strokeWidth={2}
+              strokeDasharray="5 5"
+              dot={false}
+              activeDot={{ r: 4, stroke: '#9ca3af', strokeWidth: 2 }}
+              name="Fixed Tariff (reference)"
+            />
+          )}
           
           {/* EV Charging line */}
           <Line
