@@ -1,5 +1,4 @@
-
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
 
 // Generate 24-hour data
@@ -99,15 +98,15 @@ const ElectricityChart = () => {
             wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }}
           />
           
-          {/* Price line with area fill */}
-          <Area
+          {/* Price line */}
+          <Line
             yAxisId="price"
             type="stepAfter"
             dataKey="price"
             stroke="#3b82f6"
             strokeWidth={3}
-            fill="url(#priceGradient)"
-            fillOpacity={0.2}
+            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+            activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
             name="Electricity Price (p/kWh)"
           />
           
@@ -122,13 +121,6 @@ const ElectricityChart = () => {
             activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
             name="Household Demand (kWh)"
           />
-          
-          <defs>
-            <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
-            </linearGradient>
-          </defs>
         </LineChart>
       </ResponsiveContainer>
     </div>
