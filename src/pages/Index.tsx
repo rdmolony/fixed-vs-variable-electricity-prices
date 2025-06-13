@@ -1,7 +1,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import ElectricityChart from "@/components/ElectricityChart";
-import FlexibilityMetrics from "@/components/FlexibilityMetrics";
 
 const Index = () => {
   return (
@@ -17,25 +16,75 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid gap-6 mb-8">
-          <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-            <CardHeader>
-              <CardTitle className="text-2xl text-gray-800">
-                Daily Electricity Prices vs Demand
-              </CardTitle>
-              <CardDescription className="text-lg">
-                24-hour profile showing price variations and household demand patterns
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ElectricityChart />
-            </CardContent>
-          </Card>
+        <div className="space-y-8">
+          {/* Fixed Tariff Section */}
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Fixed Tariff Pricing</h2>
+            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+              <CardHeader>
+                <CardTitle className="text-xl text-gray-800">
+                  Daily Electricity Prices vs Demand
+                </CardTitle>
+                <CardDescription className="text-base">
+                  Fixed time-of-use tariff with consistent pricing periods
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ElectricityChart scenario="fixed" />
+              </CardContent>
+            </Card>
+          </div>
 
-          <FlexibilityMetrics />
+          {/* Wholesale Pricing Section */}
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Wholesale Electricity Prices</h2>
+            <div className="grid gap-6">
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-800">
+                    Windy Night Scenario
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    High wind generation creates cheap nighttime electricity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ElectricityChart scenario="windy" />
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-800">
+                    Sunny Day Scenario
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    High solar generation creates cheap daytime electricity
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ElectricityChart scenario="sunny" />
+                </CardContent>
+              </Card>
+
+              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                <CardHeader>
+                  <CardTitle className="text-xl text-gray-800">
+                    Grid Issues Scenario
+                  </CardTitle>
+                  <CardDescription className="text-base">
+                    Volatile and expensive prices due to grid constraints
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ElectricityChart scenario="volatile" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </div>
 
-        <div className="text-center text-gray-600">
+        <div className="text-center text-gray-600 mt-8">
           <p className="text-sm">
             * Scenario: EV charging at night, work-from-home during day
           </p>
