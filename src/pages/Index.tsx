@@ -1,8 +1,32 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ElectricityChart from "@/components/ElectricityChart";
 
 const Index = () => {
+  const scenarios = [
+    {
+      id: "fixed",
+      title: "Fixed Tariff Pricing",
+      description: "Fixed time-of-use tariff with consistent pricing periods"
+    },
+    {
+      id: "windy",
+      title: "Windy Night Scenario",
+      description: "High wind generation creates cheap nighttime electricity - perfect for EV charging"
+    },
+    {
+      id: "sunny",
+      title: "Sunny Day Scenario", 
+      description: "High solar generation creates cheap daytime electricity - opportunity for daytime charging"
+    },
+    {
+      id: "volatile",
+      title: "Grid Issues Scenario",
+      description: "Volatile and expensive prices due to grid constraints - charging flexibility becomes crucial"
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-8">
@@ -16,77 +40,40 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="space-y-8">
-          {/* Fixed Tariff Section */}
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Fixed Tariff Pricing</h2>
-            <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-              <CardHeader>
-                <CardTitle className="text-xl text-gray-800">
-                  Daily Electricity Prices vs EV Charging
-                </CardTitle>
-                <CardDescription className="text-base">
-                  Fixed time-of-use tariff with consistent pricing periods
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ElectricityChart scenario="fixed" />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Wholesale Pricing Section */}
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Wholesale Electricity Prices</h2>
-            <div className="grid gap-6">
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">
-                    Windy Night Scenario
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    High wind generation creates cheap nighttime electricity - perfect for EV charging
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ElectricityChart scenario="windy" />
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">
-                    Sunny Day Scenario
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    High solar generation creates cheap daytime electricity - opportunity for daytime charging
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ElectricityChart scenario="sunny" />
-                </CardContent>
-              </Card>
-
-              <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
-                <CardHeader>
-                  <CardTitle className="text-xl text-gray-800">
-                    Grid Issues Scenario
-                  </CardTitle>
-                  <CardDescription className="text-base">
-                    Volatile and expensive prices due to grid constraints - charging flexibility becomes crucial
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <ElectricityChart scenario="volatile" />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        <div className="max-w-6xl mx-auto">
+          <Carousel className="w-full">
+            <CarouselContent>
+              {scenarios.map((scenario) => (
+                <CarouselItem key={scenario.id}>
+                  <div className="p-1">
+                    <Card className="shadow-lg border-0 bg-white/80 backdrop-blur">
+                      <CardHeader className="text-center">
+                        <CardTitle className="text-2xl text-gray-800">
+                          {scenario.title}
+                        </CardTitle>
+                        <CardDescription className="text-base">
+                          {scenario.description}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <ElectricityChart scenario={scenario.id as "fixed" | "windy" | "sunny" | "volatile"} />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious />
+            <CarouselNext />
+          </Carousel>
         </div>
 
         <div className="text-center text-gray-600 mt-8">
           <p className="text-sm">
             * Scenario: 28kWh EV battery charged at 11kW (3-phase, 230V, 16A)
+          </p>
+          <p className="text-sm mt-2">
+            Use the arrows or swipe to navigate between different pricing scenarios
           </p>
         </div>
       </div>
