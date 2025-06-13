@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
 
@@ -111,7 +110,7 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
   };
 
   return (
-    <div className="w-full h-96">
+    <div className="w-full h-[500px]">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={data} margin={{ top: 20, right: 80, left: 20, bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -125,7 +124,7 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
             orientation="left"
             tick={{ fontSize: 12 }}
             stroke="#3b82f6"
-            domain={[0, 'dataMax']}
+            domain={[0, 60]}
             label={{ value: 'Price (p/kWh)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
           />
           <YAxis 
