@@ -97,22 +97,22 @@ const Index = () => {
             
             {/* Enhanced Previous Button with Context */}
             <div className="absolute -left-32 top-1/2 -translate-y-1/2 flex flex-col items-center">
-              <CarouselPrevious className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
-              <div className="mt-4 text-center max-w-24">
+              <div className="mb-4 text-center max-w-24">
                 <p className="text-xs text-gray-600 font-medium leading-tight">
                   {getPreviousScenario().switchText}
                 </p>
               </div>
+              <CarouselPrevious className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
             </div>
 
             {/* Enhanced Next Button with Context */}
             <div className="absolute -right-32 top-1/2 -translate-y-1/2 flex flex-col items-center">
-              <CarouselNext className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
-              <div className="mt-4 text-center max-w-24">
+              <div className="mb-4 text-center max-w-24">
                 <p className="text-xs text-gray-600 font-medium leading-tight">
                   {getNextScenario().switchText}
                 </p>
               </div>
+              <CarouselNext className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
             </div>
           </Carousel>
         </div>
