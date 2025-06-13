@@ -95,26 +95,34 @@ const Index = () => {
               ))}
             </CarouselContent>
             
-            {/* Enhanced Previous Button with Context */}
-            <div className="absolute -left-32 top-1/2 -translate-y-1/2 flex flex-col items-center">
-              <div className="mb-4 text-center max-w-24">
-                <p className="text-xs text-gray-600 font-medium leading-tight">
-                  {getPreviousScenario().switchText}
-                </p>
-              </div>
+            {/* Previous Button */}
+            <div className="absolute -left-32 top-1/2 -translate-y-1/2">
               <CarouselPrevious className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
             </div>
 
-            {/* Enhanced Next Button with Context */}
-            <div className="absolute -right-32 top-1/2 -translate-y-1/2 flex flex-col items-center">
-              <div className="mb-4 text-center max-w-24">
-                <p className="text-xs text-gray-600 font-medium leading-tight">
-                  {getNextScenario().switchText}
-                </p>
-              </div>
+            {/* Next Button */}
+            <div className="absolute -right-32 top-1/2 -translate-y-1/2">
               <CarouselNext className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
             </div>
           </Carousel>
+          
+          {/* Previous Button Context Text - Separate Div */}
+          <div className="absolute -left-32 top-1/2 translate-y-12 flex justify-center">
+            <div className="text-center max-w-24">
+              <p className="text-xs text-gray-600 font-medium leading-tight">
+                {getPreviousScenario().switchText}
+              </p>
+            </div>
+          </div>
+
+          {/* Next Button Context Text - Separate Div */}
+          <div className="absolute -right-32 top-1/2 translate-y-12 flex justify-center">
+            <div className="text-center max-w-24">
+              <p className="text-xs text-gray-600 font-medium leading-tight">
+                {getNextScenario().switchText}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="text-center text-gray-600 mt-8">
