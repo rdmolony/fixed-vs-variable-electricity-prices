@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
 
@@ -62,33 +61,53 @@ const generatePriceForHour = (hour: number, scenario: Scenario) => {
   }
 };
 
-// Generate 24-hour data
+// Generate 24-hour data with cost calculations
 const generateHourlyData = (scenario: Scenario) => {
   const data = [];
+  let totalDailySpend = 0;
+  let fixedTariffSpend = 0;
+  
   for (let hour = 0; hour < 24; hour++) {
     const price = Math.round(generatePriceForHour(hour, scenario) * 10) / 10;
     const demand = generateDemandForHour(hour);
     const fixedPrice = generateFixedPriceForHour(hour);
+    
+    // Calculate hourly cost in pence (price per kWh × demand in kWh)
+    const hourlyCost = Math.round((price * demand) * 10) / 10;
+    const fixedHourlyCost = Math.round((fixedPrice * demand) * 10) / 10;
+    
+    totalDailySpend += hourlyCost;
+    fixedTariffSpend += fixedHourlyCost;
 
     data.push({
       hour: `${hour.toString().padStart(2, '0')}:00`,
       price,
       demand,
       fixedPrice,
+      hourlyCost,
       isPeakPrice: price > 30
     });
   }
-  return data;
+  
+  // Round total daily spend
+  totalDailySpend = Math.round(totalDailySpend * 10) / 10;
+  fixedTariffSpend = Math.round(fixedTariffSpend * 10) / 10;
+  
+  return { data, totalDailySpend, fixedTariffSpend };
 };
 
 const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
-  const [data] = useState(() => generateHourlyData(scenario));
+  const [chartData] = useState(() => generateHourlyData(scenario));
+  const { data, totalDailySpend, fixedTariffSpend } = chartData;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const priceData = payload.find((p: any) => p.dataKey === 'price');
       const demandData = payload.find((p: any) => p.dataKey === 'demand');
       const fixedPriceData = payload.find((p: any) => p.dataKey === 'fixedPrice');
+      
+      // Find the hour's cost data
+      const hourData = data.find((d) => d.hour === label);
       
       return (
         <div className="bg-white/95 backdrop-blur border border-gray-200 rounded-lg p-3 shadow-lg">
@@ -108,6 +127,11 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
               {`EV Charging: ${demandData.value} kW`}
             </p>
           )}
+          {hourData && hourData.hourlyCost > 0 && (
+            <p className="text-orange-600 font-medium">
+              {`Hourly Cost: ${hourData.hourlyCost}p`}
+            </p>
+          )}
         </div>
       );
     }
@@ -115,79 +139,111 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
   };
 
   return (
-    <div className="w-full h-[500px]">
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 20, right: 80, left: 20, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-          <XAxis 
-            dataKey="hour" 
-            tick={{ fontSize: 12 }}
-            stroke="#64748b"
-          />
-          <YAxis 
-            yAxisId="price"
-            orientation="left"
-            tick={{ fontSize: 12 }}
-            stroke="#3b82f6"
-            domain={[0, 60]}
-            label={{ value: 'Price (p/kWh)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
-          />
-          <YAxis 
-            yAxisId="demand"
-            orientation="right"
-            tick={{ fontSize: 12 }}
-            stroke="#10b981"
-            domain={[0, 12]}
-            label={{ value: 'EV Charging (kW)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
-          />
-          <Tooltip content={<CustomTooltip />} />
-          <Legend 
-            verticalAlign="bottom"
-            height={36}
-            iconType="line"
-            wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }}
-          />
-          
-          {/* Main price line */}
-          <Line
-            yAxisId="price"
-            type="monotone"
-            dataKey="price"
-            stroke="#3b82f6"
-            strokeWidth={3}
-            dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
-            name={scenario === 'fixed' ? 'Fixed Tariff Price (p/kWh)' : 'Wholesale Price (p/kWh)'}
-          />
-          
-          {/* Fixed tariff overlay for wholesale scenarios */}
-          {scenario !== 'fixed' && (
+    <div className="w-full">
+      {/* Daily spend summary */}
+      <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+        <div className="flex justify-between items-center">
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800">
+              Daily Electricity Spend
+            </h3>
+            <p className="text-2xl font-bold text-blue-600">
+              {totalDailySpend}p
+            </p>
+            {scenario !== 'fixed' && (
+              <p className="text-sm text-gray-600">
+                Fixed tariff would cost: <span className="font-medium">{fixedTariffSpend}p</span>
+                {totalDailySpend < fixedTariffSpend && (
+                  <span className="text-green-600 ml-2">
+                    (Save {Math.round((fixedTariffSpend - totalDailySpend) * 10) / 10}p)
+                  </span>
+                )}
+                {totalDailySpend > fixedTariffSpend && (
+                  <span className="text-red-600 ml-2">
+                    (Extra {Math.round((totalDailySpend - fixedTariffSpend) * 10) / 10}p)
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Chart */}
+      <div className="h-[500px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={data} margin={{ top: 20, right: 80, left: 20, bottom: 60 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <XAxis 
+              dataKey="hour" 
+              tick={{ fontSize: 12 }}
+              stroke="#64748b"
+            />
+            <YAxis 
+              yAxisId="price"
+              orientation="left"
+              tick={{ fontSize: 12 }}
+              stroke="#3b82f6"
+              domain={[0, 60]}
+              label={{ value: 'Price (p/kWh)', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle' } }}
+            />
+            <YAxis 
+              yAxisId="demand"
+              orientation="right"
+              tick={{ fontSize: 12 }}
+              stroke="#10b981"
+              domain={[0, 12]}
+              label={{ value: 'EV Charging (kW)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              verticalAlign="bottom"
+              height={36}
+              iconType="line"
+              wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }}
+            />
+            
+            {/* Main price line */}
             <Line
               yAxisId="price"
               type="monotone"
-              dataKey="fixedPrice"
-              stroke="#9ca3af"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={false}
-              activeDot={{ r: 4, stroke: '#9ca3af', strokeWidth: 2 }}
-              name="Fixed Tariff (reference)"
+              dataKey="price"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: '#3b82f6', strokeWidth: 2 }}
+              name={scenario === 'fixed' ? 'Fixed Tariff Price (p/kWh)' : 'Wholesale Price (p/kWh)'}
             />
-          )}
-          
-          {/* EV Charging line */}
-          <Line
-            yAxisId="demand"
-            type="monotone"
-            dataKey="demand"
-            stroke="#10b981"
-            strokeWidth={3}
-            dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-            activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
-            name="EV Charging Power (kW)"
-          />
-        </LineChart>
-      </ResponsiveContainer>
+            
+            {/* Fixed tariff overlay for wholesale scenarios */}
+            {scenario !== 'fixed' && (
+              <Line
+                yAxisId="price"
+                type="monotone"
+                dataKey="fixedPrice"
+                stroke="#9ca3af"
+                strokeWidth={2}
+                strokeDasharray="5 5"
+                dot={false}
+                activeDot={{ r: 4, stroke: '#9ca3af', strokeWidth: 2 }}
+                name="Fixed Tariff (reference)"
+              />
+            )}
+            
+            {/* EV Charging line */}
+            <Line
+              yAxisId="demand"
+              type="monotone"
+              dataKey="demand"
+              stroke="#10b981"
+              strokeWidth={3}
+              dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
+              name="EV Charging Power (kW)"
+            />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 };
