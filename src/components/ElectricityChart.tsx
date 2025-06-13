@@ -1,4 +1,3 @@
-
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
 
@@ -18,7 +17,7 @@ const generateDemandForHour = (hour: number) => {
     }
     return 11; // Full 11kW charging
   }
-  return 0; // No charging during other hours
+  return 0; // No demand during other hours
 };
 
 // Generate price data based on scenario
