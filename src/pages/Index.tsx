@@ -2,8 +2,13 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import ElectricityChart from "@/components/ElectricityChart";
+import { useState, useEffect } from "react";
+import type { CarouselApi } from "@/components/ui/carousel";
 
 const Index = () => {
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+
   const scenarios = [
     {
       id: "fixed",
@@ -27,6 +32,28 @@ const Index = () => {
     }
   ];
 
+  useEffect(() => {
+    if (!api) {
+      return
+    }
+
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
+
+  const getPreviousScenario = () => {
+    const prevIndex = current === 0 ? scenarios.length - 1 : current - 1;
+    return scenarios[prevIndex];
+  };
+
+  const getNextScenario = () => {
+    const nextIndex = current === scenarios.length - 1 ? 0 : current + 1;
+    return scenarios[nextIndex];
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-8">
@@ -40,8 +67,8 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto">
-          <Carousel className="w-full">
+        <div className="max-w-6xl mx-auto relative">
+          <Carousel className="w-full" setApi={setApi}>
             <CarouselContent>
               {scenarios.map((scenario) => (
                 <CarouselItem key={scenario.id}>
@@ -63,8 +90,26 @@ const Index = () => {
                 </CarouselItem>
               ))}
             </CarouselContent>
-            <CarouselPrevious />
-            <CarouselNext />
+            
+            {/* Enhanced Previous Button with Context */}
+            <div className="absolute -left-24 top-1/2 -translate-y-1/2 flex flex-col items-center">
+              <CarouselPrevious className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
+              <div className="mt-2 text-center max-w-20">
+                <p className="text-xs text-gray-600 font-medium">
+                  {getPreviousScenario().title}
+                </p>
+              </div>
+            </div>
+
+            {/* Enhanced Next Button with Context */}
+            <div className="absolute -right-24 top-1/2 -translate-y-1/2 flex flex-col items-center">
+              <CarouselNext className="h-16 w-16 bg-white shadow-lg hover:bg-gray-50 border-2" />
+              <div className="mt-2 text-center max-w-20">
+                <p className="text-xs text-gray-600 font-medium">
+                  {getNextScenario().title}
+                </p>
+              </div>
+            </div>
           </Carousel>
         </div>
 
