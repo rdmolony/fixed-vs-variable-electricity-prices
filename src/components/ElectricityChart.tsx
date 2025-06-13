@@ -1,5 +1,5 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 
 type Scenario = 'fixed' | 'windy' | 'sunny' | 'volatile';
@@ -48,7 +48,13 @@ const generateFixedPriceForHour = (hour: number) => {
 };
 
 // Generate price data based on scenario
-const generatePriceForHour = (hour: number, scenario: Scenario) => {
+const generatePriceForHour = (hour: number, scenario: Scenario, randomSeed: number) => {
+  // Use the random seed to make prices consistent across renders
+  const seededRandom = (seed: number) => {
+    const x = Math.sin(seed) * 10000;
+    return x - Math.floor(x);
+  };
+
   switch (scenario) {
     case 'fixed':
       // Original fixed tariff
@@ -56,26 +62,26 @@ const generatePriceForHour = (hour: number, scenario: Scenario) => {
     
     case 'windy':
       // Windy night: very cheap 00:00-06:00, normal daytime
-      if (hour >= 0 && hour < 6) return 5 + Math.random() * 3; // 5-8p
-      if (hour >= 6 && hour < 8) return 15 + Math.random() * 5; // 15-20p
-      if (hour >= 8 && hour < 18) return 25 + Math.random() * 5; // 25-30p
-      if (hour >= 18 && hour < 22) return 30 + Math.random() * 5; // 30-35p
-      return 20 + Math.random() * 5; // 20-25p
+      if (hour >= 0 && hour < 6) return 5 + seededRandom(randomSeed + hour) * 3; // 5-8p
+      if (hour >= 6 && hour < 8) return 15 + seededRandom(randomSeed + hour) * 5; // 15-20p
+      if (hour >= 8 && hour < 18) return 25 + seededRandom(randomSeed + hour) * 5; // 25-30p
+      if (hour >= 18 && hour < 22) return 30 + seededRandom(randomSeed + hour) * 5; // 30-35p
+      return 20 + seededRandom(randomSeed + hour) * 5; // 20-25p
     
     case 'sunny':
       // Sunny day: cheap 10:00-16:00 due to solar
-      if (hour >= 0 && hour < 8) return 25 + Math.random() * 5; // 25-30p
-      if (hour >= 8 && hour < 10) return 30 + Math.random() * 5; // 30-35p
-      if (hour >= 10 && hour < 16) return 8 + Math.random() * 7; // 8-15p
-      if (hour >= 16 && hour < 19) return 35 + Math.random() * 10; // 35-45p
-      if (hour >= 19 && hour < 22) return 40 + Math.random() * 5; // 40-45p
-      return 30 + Math.random() * 5; // 30-35p
+      if (hour >= 0 && hour < 8) return 25 + seededRandom(randomSeed + hour) * 5; // 25-30p
+      if (hour >= 8 && hour < 10) return 30 + seededRandom(randomSeed + hour) * 5; // 30-35p
+      if (hour >= 10 && hour < 16) return 8 + seededRandom(randomSeed + hour) * 7; // 8-15p
+      if (hour >= 16 && hour < 19) return 35 + seededRandom(randomSeed + hour) * 10; // 35-45p
+      if (hour >= 19 && hour < 22) return 40 + seededRandom(randomSeed + hour) * 5; // 40-45p
+      return 30 + seededRandom(randomSeed + hour) * 5; // 30-35p
     
     case 'volatile':
       // Volatile prices with spikes
       const basePrice = 25;
-      const volatility = Math.sin(hour * 0.5) * 15 + Math.random() * 20;
-      const spikes = [6, 8, 17, 19].includes(hour) ? Math.random() * 30 : 0;
+      const volatility = Math.sin(hour * 0.5) * 15 + seededRandom(randomSeed + hour) * 20;
+      const spikes = [6, 8, 17, 19].includes(hour) ? seededRandom(randomSeed + hour + 100) * 30 : 0;
       return Math.max(5, basePrice + volatility + spikes);
     
     default:
@@ -84,15 +90,15 @@ const generatePriceForHour = (hour: number, scenario: Scenario) => {
 };
 
 // Generate 24-hour data with cost calculations
-const generateHourlyData = (scenario: Scenario, smartCharging: boolean = false) => {
+const generateHourlyData = (scenario: Scenario, smartCharging: boolean = false, randomSeed: number) => {
   const data = [];
   let totalDailySpend = 0;
   let fixedTariffSpend = 0;
   
-  // First pass: generate price data
+  // First pass: generate price data (consistent with seed)
   const priceData = [];
   for (let hour = 0; hour < 24; hour++) {
-    const price = Math.round(generatePriceForHour(hour, scenario) * 10) / 10;
+    const price = Math.round(generatePriceForHour(hour, scenario, randomSeed) * 10) / 10;
     priceData.push({ hour, price });
   }
   
@@ -128,13 +134,18 @@ const generateHourlyData = (scenario: Scenario, smartCharging: boolean = false) 
 
 const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
   const [smartCharging, setSmartCharging] = useState(false);
-  const [chartData, setChartData] = useState(() => generateHourlyData(scenario, false));
+  
+  // Generate a consistent random seed for this chart instance
+  const randomSeed = useMemo(() => Math.random() * 1000, [scenario]);
+  
+  const [chartData, setChartData] = useState(() => generateHourlyData(scenario, false, randomSeed));
   const { data, totalDailySpend, fixedTariffSpend } = chartData;
 
   const handleSmartCharging = () => {
     const newSmartCharging = !smartCharging;
     setSmartCharging(newSmartCharging);
-    setChartData(generateHourlyData(scenario, newSmartCharging));
+    // Use the same randomSeed to keep prices consistent
+    setChartData(generateHourlyData(scenario, newSmartCharging, randomSeed));
   };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
