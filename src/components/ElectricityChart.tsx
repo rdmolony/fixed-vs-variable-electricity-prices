@@ -1,5 +1,5 @@
 
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart, Legend } from 'recharts';
 import { useState } from 'react';
 
 // Generate 24-hour data
@@ -68,7 +68,7 @@ const ElectricityChart = () => {
   return (
     <div className="w-full h-96">
       <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 20, right: 80, left: 20, bottom: 20 }}>
+        <LineChart data={data} margin={{ top: 20, right: 80, left: 20, bottom: 60 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
           <XAxis 
             dataKey="hour" 
@@ -92,6 +92,12 @@ const ElectricityChart = () => {
             label={{ value: 'Demand (kWh)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
           />
           <Tooltip content={<CustomTooltip />} />
+          <Legend 
+            verticalAlign="bottom"
+            height={36}
+            iconType="line"
+            wrapperStyle={{ paddingTop: '20px', fontSize: '14px' }}
+          />
           
           {/* Price line with area fill */}
           <Area
@@ -102,6 +108,7 @@ const ElectricityChart = () => {
             strokeWidth={3}
             fill="url(#priceGradient)"
             fillOpacity={0.2}
+            name="Electricity Price (p/kWh)"
           />
           
           {/* Demand line */}
@@ -113,6 +120,7 @@ const ElectricityChart = () => {
             strokeWidth={3}
             dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
+            name="Household Demand (kWh)"
           />
           
           <defs>
