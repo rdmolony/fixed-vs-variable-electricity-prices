@@ -1,3 +1,4 @@
+
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
 
@@ -7,26 +8,17 @@ interface ElectricityChartProps {
   scenario: Scenario;
 }
 
-// Generate demand data (same across all scenarios)
+// Generate EV charging demand data (11kW for ~2.5 hours to charge 28kWh battery)
 const generateDemandForHour = (hour: number) => {
-  let demand;
-  if (hour >= 0 && hour < 7) {
-    // Night: EV charging (high demand)
-    demand = 6 + Math.sin((hour * Math.PI) / 6) * 2; // 4-8 kWh
-  } else if (hour >= 7 && hour < 9) {
-    // Morning routine (medium demand)
-    demand = 3 + Math.random() * 1; // 3-4 kWh
-  } else if (hour >= 9 && hour < 17) {
-    // Work from home (low-medium demand)
-    demand = 1.5 + Math.sin((hour - 9) * Math.PI / 8) * 0.8; // 0.7-2.3 kWh
-  } else if (hour >= 17 && hour < 20) {
-    // Evening peak (cooking, etc.)
-    demand = 3.5 + Math.random() * 1.5; // 3.5-5 kWh
-  } else {
-    // Late evening (medium demand)
-    demand = 2 + Math.random() * 0.5; // 2-2.5 kWh
+  // EV charges from 01:00 to 03:30 (2.5 hours at 11kW = 27.5kWh ≈ 28kWh)
+  if (hour >= 1 && hour < 4) {
+    if (hour === 3) {
+      // Last 30 minutes of charging (partial hour)
+      return 5.5; // 11kW for 0.5 hours
+    }
+    return 11; // Full 11kW charging
   }
-  return Math.round(demand * 10) / 10;
+  return 0; // No charging during other hours
 };
 
 // Generate price data based on scenario
@@ -100,7 +92,7 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
           )}
           {demandData && (
             <p className="text-green-600">
-              {`Demand: ${demandData.value} kWh`}
+              {`EV Charging: ${demandData.value} kW`}
             </p>
           )}
         </div>
@@ -132,8 +124,8 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
             orientation="right"
             tick={{ fontSize: 12 }}
             stroke="#10b981"
-            domain={[0, 'dataMax']}
-            label={{ value: 'Demand (kWh)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
+            domain={[0, 12]}
+            label={{ value: 'EV Charging (kW)', angle: 90, position: 'insideRight', style: { textAnchor: 'middle' } }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
@@ -155,7 +147,7 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
             name="Electricity Price (p/kWh)"
           />
           
-          {/* Demand line */}
+          {/* EV Charging line */}
           <Line
             yAxisId="demand"
             type="monotone"
@@ -164,7 +156,7 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
             strokeWidth={3}
             dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
             activeDot={{ r: 6, stroke: '#10b981', strokeWidth: 2 }}
-            name="Household Demand (kWh)"
+            name="EV Charging Power (kW)"
           />
         </LineChart>
       </ResponsiveContainer>
