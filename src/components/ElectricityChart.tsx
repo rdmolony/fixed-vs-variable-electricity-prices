@@ -1,5 +1,6 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 
 type Scenario = 'fixed' | 'windy' | 'sunny' | 'volatile';
 
@@ -8,16 +9,37 @@ interface ElectricityChartProps {
 }
 
 // Generate EV charging demand data (11kW for ~2.5 hours to charge 28kWh battery)
-const generateDemandForHour = (hour: number) => {
-  // EV charges from 01:00 to 03:30 (2.5 hours at 11kW = 27.5kWh ≈ 28kWh)
-  if (hour >= 1 && hour < 4) {
-    if (hour === 3) {
-      // Last 30 minutes of charging (partial hour)
-      return 5.5; // 11kW for 0.5 hours
+const generateDemandForHour = (hour: number, smartCharging: boolean = false, scenario?: Scenario, priceData?: any[]) => {
+  if (!smartCharging) {
+    // Original charging pattern: 01:00 to 03:30
+    if (hour >= 1 && hour < 4) {
+      if (hour === 3) {
+        return 5.5; // Last 30 minutes of charging (partial hour)
+      }
+      return 11; // Full 11kW charging
     }
-    return 11; // Full 11kW charging
+    return 0;
   }
-  return 0; // No demand during other hours
+
+  if (!priceData || !scenario || scenario === 'fixed') {
+    return generateDemandForHour(hour, false);
+  }
+
+  // Smart charging: find cheapest 2.5 hours
+  const sortedHours = priceData
+    .map((d, index) => ({ hour: index, price: d.price }))
+    .sort((a, b) => a.price - b.price);
+
+  const cheapestHours = sortedHours.slice(0, 3).map(h => h.hour).sort((a, b) => a - b);
+  
+  if (cheapestHours.includes(hour)) {
+    if (cheapestHours.indexOf(hour) === 2) {
+      return 5.5; // Last partial hour
+    }
+    return 11; // Full charging
+  }
+  
+  return 0;
 };
 
 // Generate fixed tariff price for comparison
@@ -62,14 +84,22 @@ const generatePriceForHour = (hour: number, scenario: Scenario) => {
 };
 
 // Generate 24-hour data with cost calculations
-const generateHourlyData = (scenario: Scenario) => {
+const generateHourlyData = (scenario: Scenario, smartCharging: boolean = false) => {
   const data = [];
   let totalDailySpend = 0;
   let fixedTariffSpend = 0;
   
+  // First pass: generate price data
+  const priceData = [];
   for (let hour = 0; hour < 24; hour++) {
     const price = Math.round(generatePriceForHour(hour, scenario) * 10) / 10;
-    const demand = generateDemandForHour(hour);
+    priceData.push({ hour, price });
+  }
+  
+  // Second pass: generate demand and calculate costs
+  for (let hour = 0; hour < 24; hour++) {
+    const price = priceData[hour].price;
+    const demand = generateDemandForHour(hour, smartCharging, scenario, priceData);
     const fixedPrice = generateFixedPriceForHour(hour);
     
     // Calculate hourly cost in pence (price per kWh × demand in kWh)
@@ -97,8 +127,15 @@ const generateHourlyData = (scenario: Scenario) => {
 };
 
 const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
-  const [chartData] = useState(() => generateHourlyData(scenario));
+  const [smartCharging, setSmartCharging] = useState(false);
+  const [chartData, setChartData] = useState(() => generateHourlyData(scenario, false));
   const { data, totalDailySpend, fixedTariffSpend } = chartData;
+
+  const handleSmartCharging = () => {
+    const newSmartCharging = !smartCharging;
+    setSmartCharging(newSmartCharging);
+    setChartData(generateHourlyData(scenario, newSmartCharging));
+  };
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -140,12 +177,31 @@ const ElectricityChart = ({ scenario }: ElectricityChartProps) => {
 
   return (
     <div className="w-full">
+      {/* Smart Charging Button for wholesale scenarios */}
+      {scenario !== 'fixed' && (
+        <div className="mb-4">
+          <Button 
+            onClick={handleSmartCharging}
+            variant={smartCharging ? "default" : "outline"}
+            size="lg"
+            className="w-full text-lg font-semibold"
+          >
+            {smartCharging ? "✓ Smart Charging Active" : "Enable Smart Charging"}
+          </Button>
+          {smartCharging && (
+            <p className="text-sm text-gray-600 mt-2 text-center">
+              EV charging shifted to cheapest electricity hours
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Daily spend summary */}
       <div className="mb-4 p-4 bg-gray-50 rounded-lg">
         <div className="flex justify-between items-center">
           <div>
             <h3 className="text-lg font-semibold text-gray-800">
-              Daily Electricity Spend
+              Daily Electricity Spend {smartCharging && "(Smart Charging)"}
             </h3>
             <p className="text-2xl font-bold text-blue-600">
               {totalDailySpend}p
