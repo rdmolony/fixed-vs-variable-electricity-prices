@@ -59,16 +59,28 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Flexible Energy Scenario Explorer
+            Explore Flexible Energy Scenarios
           </h1>
-          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
-            This dashboard lets us explore a number of scenarios to get a feeling for how 
-            switching to flexible electricity tariffs might impact electricity spend and demand.
-          </p>
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-4xl mx-auto mb-6">
-            <p className="text-sm text-amber-800">
+          <div className="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
+            <p>
+              Do you have an EV, a heat pump or a battery?
+            </p>
+            <p className="pb-4">
+              If so, flexible electricity tariffs might be of interest to you! 
+            </p>
+            <p>
+              Let's explore a number of scenarios to get a feeling for how 
+              switching from fixed to flexible electricity tariffs
+              might impact your electricity spend and consumption.
+            </p>
+          </div>
+          <div className="bg-amber-50 border border-amber-200 text-sm text-amber-800 rounded-lg p-4 max-w-4xl mx-auto mb-6">
+            <p>
               <span className="font-semibold">Caveat:</span> This tool is intended as a storytelling device. 
-              It is based on illustrative, fictitious data. For real historic data and trends go to{" "}
+              It is based on illustrative, fictitious data. 
+            </p>
+            <p>
+            For real historic data and trends go to{" "}
               <a 
                 href="https://agile.octopushome.net/" 
                 target="_blank" 
@@ -83,7 +95,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto mb-12">
             <Collapsible>
               <CollapsibleTrigger className="flex items-center justify-center w-full bg-blue-50 hover:bg-blue-100 rounded-lg p-4 transition-colors">
-                <span className="text-lg font-semibold text-blue-900 mr-2">What is flexible energy?</span>
+                <span className="text-lg font-semibold text-blue-900 mr-2">Want a refresher on tariffs?</span>
                 <ChevronDown className="h-5 w-5 text-blue-700" />
               </CollapsibleTrigger>
               <CollapsibleContent className="bg-white border border-blue-200 rounded-b-lg p-6 text-left">
@@ -125,51 +137,34 @@ const Index = () => {
                   
                   <div>
                     <p className="font-medium text-green-800">Me:</p>
-                    <p className="ml-4">It is hassle. Deciding the right time to buy and sell is hard work. That's why it's better left in the hands of a competent 3rd party who employs a team full time to manage this.</p>
+                    <p className="ml-4">It is hassle. Deciding the right time to buy and sell is hard work, however, there are 3rd parties who can help.</p>
                   </div>
                   
                   <div>
                     <p className="font-medium text-blue-800">X:</p>
-                    <p className="ml-4">Okay, let's say I am bothered enough to take this risk, does such a 3rd party exist?</p>
+                    <p className="ml-4">Who?</p>
                   </div>
                   
                   <div>
                     <p className="font-medium text-green-800">Me:</p>
                     <div className="ml-4 space-y-2">
-                      <p>This depends on where you live. Octopus Energy, a UK-based electricity supplier, first announced flexible tariffs (Agile Octopus) in 2018, however, (as of the 18th of June 2025) they still caveat that this is still a "Beta Product".</p>
-                      <p>
-                        <a 
+                      <p>This depends on where you live. Octopus Energy, a UK-based electricity supplier, first announced flexible tariffs (Agile Octopus) <a 
                           href="https://octopusgroup.com/newsroom/latest-news/agile-octopus-time-of-use-tariff-pays-customers-to-use-energy-for-first-time-ever/" 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-blue-600 underline hover:text-blue-800"
-                        >
-                          https://octopusgroup.com/newsroom/latest-news/agile-octopus-time-of-use-tariff-pays-customers-to-use-energy-for-first-time-ever/
-                        </a>
-                      </p>
-                      <p>They don't yet, however, take control of your EV charging. Your EV charger may well already connect to a flexible tariff. If not, then find one that can. If you want to customise this control beyond what your EV charger lets you do, and your charger lets other machines talk to it (ie it allows for API access), there are software products growing around this use case. You could rely on something purpose-built (like Axle Energy), a no-code automation tool (like IFTTT), or you could grow your own solution.</p>
-                      <div className="space-y-1">
-                        <p>
-                          <a 
+                        >in 2018</a>, however, they still caveat that this is still a "Beta Product" (as of the 18th of June 2025).</p>
+                      <p>They don't yet, however, <a 
                             href="https://octopus.energy/blog/agile-smart-home-diy/" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 underline hover:text-blue-800"
-                          >
-                            https://octopus.energy/blog/agile-smart-home-diy/
-                          </a>
-                        </p>
-                        <p>
-                          <a 
-                            href="https://octopus.energy/blog/ifttt/" 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="text-blue-600 underline hover:text-blue-800"
-                          >
-                            https://octopus.energy/blog/ifttt/
-                          </a>
-                        </p>
-                      </div>
+                          >take control of your EV charging</a>. Your EV charger may well already connect to a flexible tariff. If not, then find one that can. If you want to customise this control beyond what your EV charger lets you do, and your charger lets other machines talk to it (ie it allows for API access), there are software products growing around this use case. You could rely on something purpose-built (like Axle Energy), a no-code automation tool (like <a 
+                        href="https://octopus.energy/blog/ifttt/" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline hover:text-blue-800"
+                      >IFTTT</a>), or you could grow your own solution.</p>
                     </div>
                   </div>
                   
