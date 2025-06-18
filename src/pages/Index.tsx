@@ -283,6 +283,121 @@ const Index = () => {
             </div>
           </div>
         </div>
+
+        {/* Scenarios Section */}
+        <div className="max-w-6xl mx-auto mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">
+              Scenarios
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Compare different charging strategies and their impact on electricity costs
+            </p>
+          </div>
+
+          <div className="space-y-8 text-left max-w-5xl mx-auto">
+            {/* Primary Cost Visualization - Emphasized */}
+            <div className="bg-white rounded-lg p-8 border-2 border-red-200 shadow-xl">
+              <p className="text-2xl font-bold text-gray-800 mb-6 text-center">
+                💰 Hourly Electricity Cost
+              </p>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart 
+                    data={introData}
+                    onMouseMove={(e) => e?.activeLabel && setHoveredHour(e.activeLabel)}
+                    onMouseLeave={() => setHoveredHour(null)}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis dataKey="hour" tick={{ fontSize: 14 }} />
+                    <YAxis 
+                      domain={[0, 120]} 
+                      tick={{ fontSize: 14 }}
+                      label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="cost"
+                      stroke="#ef4444"
+                      fill="#fef2f2"
+                      fillOpacity={0.8}
+                      strokeWidth={4}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="text-center mt-4">
+                <p className="text-lg font-semibold text-red-600">
+                  Total daily cost: 792 pence (£7.92)
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  This is what you pay for charging your EV with a fixed tariff
+                </p>
+              </div>
+            </div>
+
+            {/* Secondary Visualizations - De-emphasized */}
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Unit Rate Chart - De-emphasized */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 opacity-75">
+                <p className="text-sm font-medium text-gray-600 mb-3 text-center">
+                  Hourly Unit Rates
+                </p>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={introData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                      <YAxis 
+                        domain={[0, 35]} 
+                        tick={{ fontSize: 10 }}
+                        label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="unitRate"
+                        stroke="#6b7280"
+                        strokeWidth={2}
+                        dot={{ fill: '#6b7280', strokeWidth: 1, r: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Consumption Chart - De-emphasized */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 opacity-75">
+                <p className="text-sm font-medium text-gray-600 mb-3 text-center">
+                  Hourly Energy Consumption
+                </p>
+                <div className="h-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={introData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                      <YAxis 
+                        domain={[0, 12]} 
+                        tick={{ fontSize: 10 }}
+                        label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="consumption"
+                        stroke="#6b7280"
+                        strokeWidth={2}
+                        dot={{ fill: '#6b7280', strokeWidth: 1, r: 2 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center text-sm text-gray-500">
+              <p>The cost visualization above shows the combined effect of consumption patterns and unit rates</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
