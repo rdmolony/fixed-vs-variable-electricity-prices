@@ -1,6 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import ElectricityChart from "@/components/ElectricityChart";
 import { useState, useEffect } from "react";
 import type { CarouselApi } from "@/components/ui/carousel";
@@ -12,6 +13,7 @@ const Index = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [visualizationOption, setVisualizationOption] = useState(1);
+  const [hoveredHour, setHoveredHour] = useState<string | null>(null);
 
   const variableScenarios = [
     {
@@ -441,110 +443,150 @@ const Index = () => {
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="bg-white rounded-lg p-6 border">
+            <div className="space-y-6">
+              {/* Primary Cost Chart */}
+              <div className="bg-white rounded-lg p-6 border-2 border-red-200 shadow-lg">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                  💰 Hourly Electricity Cost (This is what matters!)
+                </h4>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={introData}>
+                    <AreaChart 
+                      data={introData}
+                      onMouseMove={(e) => e?.activeLabel && setHoveredHour(e.activeLabel)}
+                      onMouseLeave={() => setHoveredHour(null)}
+                    >
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
                       <YAxis 
-                        domain={[0, 12]} 
+                        domain={[0, 120]} 
                         tick={{ fontSize: 12 }}
-                        label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
+                        label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
                       />
-                      <Line
+                      <Area
                         type="monotone"
-                        dataKey="consumption"
-                        stroke="#10b981"
+                        dataKey="cost"
+                        stroke="#ef4444"
+                        fill="#fef2f2"
+                        fillOpacity={0.8}
                         strokeWidth={3}
-                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
                       />
-                    </LineChart>
+                    </AreaChart>
                   </ResponsiveContainer>
                 </div>
+                <p className="text-center text-sm text-gray-600 mt-2">
+                  <span className="font-semibold text-red-600">Total daily cost: 792 pence (£7.92)</span> - This is what you pay for charging your EV
+                </p>
               </div>
 
-          <div className="bg-blue-50 border-blue-200 text-sm text-gray-500 rounded-lg p-4 max-w-4xl mx-auto mb-6">
-            <p>
-              <span className="font-semibold">Note:</span> Assuming the car battery's charge power is 3.6kW (single-phase * 230V * 16A) & the battery is 40kWh. This means it takes 11 hours or so to charge from empty.
-            </p>
-          </div>
-              
-              <div>
-                <p className="text-gray-700 mb-4">
-                  Let's say I'm on a fixed tariff of 20p/kWh during the night and 30p/kWh during the day -
-                </p>
-                <div className="bg-white rounded-lg p-6 border">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={introData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                        <YAxis 
-                          domain={[0, 35]} 
-                          tick={{ fontSize: 12 }}
-                          label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="unitRate"
-                          stroke="#3b82f6"
-                          strokeWidth={3}
-                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+              <div className="text-center py-4">
+                <ArrowDown className="h-6 w-6 text-gray-400 mx-auto mb-2" />
+                <p className="text-gray-600 text-sm">This cost comes from two factors below:</p>
               </div>
 
-              <div>
-                <p className="text-gray-700 mb-4">
-                  I can overlay the two charts to see if I'm charging when it's cheap -
+              {/* De-emphasized component charts */}
+              <div className="space-y-4 opacity-75">
+                <p className="text-gray-600 text-sm">
+                  For reference, here are the underlying components that determine the cost:
                 </p>
-                <div className="bg-white rounded-lg p-6 border">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={introData} margin={{ left: 40, right: 5, top: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                        <YAxis 
-                          yAxisId="consumption"
-                          orientation="left"
-                          domain={[0, 12]} 
-                          tick={{ fontSize: 12 }}
-                          stroke="#10b981"
-                          label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
-                        />
-                        <YAxis 
-                          yAxisId="rate"
-                          orientation="right"
-                          domain={[0, 35]} 
-                          tick={{ fontSize: 12 }}
-                          stroke="#3b82f6"
-                          label={{ value: 'Unit Rate (p/kWh)', angle: 90, position: 'outsideRight' }}
-                        />
-                        <Line
-                          yAxisId="consumption"
-                          type="monotone"
-                          dataKey="consumption"
-                          stroke="#10b981"
-                          strokeWidth={3}
-                          dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                        />
-                        <Line
-                          yAxisId="rate"
-                          type="monotone"
-                          dataKey="unitRate"
-                          stroke="#3b82f6"
-                          strokeWidth={3}
-                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
+                
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <div className="bg-gray-50 rounded-lg p-4 border cursor-pointer hover:bg-gray-100 transition-colors">
+                      <h5 className="text-sm font-medium text-gray-700 mb-2">EV Charging Pattern</h5>
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart 
+                            data={introData}
+                            onMouseMove={(e) => e?.activeLabel && setHoveredHour(e.activeLabel)}
+                            onMouseLeave={() => setHoveredHour(null)}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                            <YAxis 
+                              domain={[0, 12]} 
+                              tick={{ fontSize: 10 }}
+                              label={{ value: 'Consumption (kW)', angle: -90, position: 'outside', style: { fontSize: 10 } }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="consumption"
+                              stroke="#10b981"
+                              strokeWidth={2}
+                              dot={{ fill: '#10b981', strokeWidth: 1, r: 3 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">EV Charging Schedule</h4>
+                      <p className="text-sm text-gray-600">
+                        Your EV charges at 3.6kW from midnight to 11:00 AM, taking 11 hours to fully charge a 40kWh battery.
+                      </p>
+                      {hoveredHour && (
+                        <div className="bg-blue-50 p-2 rounded text-xs">
+                          <strong>Hour {hoveredHour}:</strong> {introData.find(d => d.hour === hoveredHour)?.consumption || 0}kW consumption
+                        </div>
+                      )}
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <div className="bg-gray-50 rounded-lg p-4 border cursor-pointer hover:bg-gray-100 transition-colors">
+                      <h5 className="text-sm font-medium text-gray-700 mb-2">Electricity Unit Rates</h5>
+                      <div className="h-48">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart 
+                            data={introData}
+                            onMouseMove={(e) => e?.activeLabel && setHoveredHour(e.activeLabel)}
+                            onMouseLeave={() => setHoveredHour(null)}
+                          >
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
+                            <YAxis 
+                              domain={[0, 35]} 
+                              tick={{ fontSize: 10 }}
+                              label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside', style: { fontSize: 10 } }}
+                            />
+                            <Line
+                              type="monotone"
+                              dataKey="unitRate"
+                              stroke="#3b82f6"
+                              strokeWidth={2}
+                              dot={{ fill: '#3b82f6', strokeWidth: 1, r: 3 }}
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="font-semibold">Time-of-Use Pricing</h4>
+                      <p className="text-sm text-gray-600">
+                        Night rate (23:00-08:00): 20p/kWh<br/>
+                        Day rate (08:00-23:00): 30p/kWh
+                      </p>
+                      {hoveredHour && (
+                        <div className="bg-blue-50 p-2 rounded text-xs">
+                          <strong>Hour {hoveredHour}:</strong> {introData.find(d => d.hour === hoveredHour)?.unitRate || 0}p/kWh rate
+                        </div>
+                      )}
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
+
+              <div className="bg-blue-50 border-blue-200 text-sm text-gray-500 rounded-lg p-4">
+                <p>
+                  <span className="font-semibold">Note:</span> Cost = Consumption × Unit Rate. The EV draws 3.6kW during charging hours, 
+                  and you're charged 20p/kWh at night or 30p/kWh during the day.
+                </p>
               </div>
             </div>
           </div>
