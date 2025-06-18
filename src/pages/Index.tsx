@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -6,6 +5,7 @@ import ElectricityChart from "@/components/ElectricityChart";
 import { useState, useEffect } from "react";
 import type { CarouselApi } from "@/components/ui/carousel";
 import { ArrowDown, ChevronDown } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 
 const Index = () => {
   const [api, setApi] = useState<CarouselApi>();
@@ -53,6 +53,34 @@ const Index = () => {
     const nextIndex = current === variableScenarios.length - 1 ? 0 : current + 1;
     return variableScenarios[nextIndex];
   };
+
+  // Generate simple demonstration data for intro charts
+  const generateIntroData = () => {
+    const data = [];
+    for (let hour = 0; hour < 24; hour++) {
+      // EV charging between 01:00 and 03:30 (2.5 hours total)
+      let consumption = 0;
+      if (hour >= 1 && hour < 4) {
+        if (hour === 3) {
+          consumption = 5.5; // Last 30 minutes (partial hour)
+        } else {
+          consumption = 11; // Full 11kW charging
+        }
+      }
+      
+      // Fixed tariff: 20p night (23:00-08:00), 30p day (08:00-23:00)
+      const unitRate = (hour >= 23 || hour < 8) ? 20 : 30;
+      
+      data.push({
+        hour: `${hour.toString().padStart(2, '0')}:00`,
+        consumption,
+        unitRate
+      });
+    }
+    return data;
+  };
+
+  const introData = generateIntroData();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -211,16 +239,56 @@ const Index = () => {
             </div>
 
             <div className="space-y-4">
-              <div className="bg-white rounded-lg p-4 border">
-                <p className="text-gray-700 font-medium mb-2">(Visualise) Energy Consumption [kWh] vs Time [hours]</p>
+              <div className="bg-white rounded-lg p-6 border">
+                <p className="text-gray-700 font-medium mb-4">Energy Consumption [kWh] vs Time [hours]</p>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={introData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                      <YAxis 
+                        domain={[0, 12]} 
+                        tick={{ fontSize: 12 }}
+                        label={{ value: 'Consumption (kW)', angle: -90, position: 'insideLeft' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="consumption"
+                        stroke="#10b981"
+                        strokeWidth={3}
+                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
               
               <div>
                 <p className="text-gray-700 mb-4">
                   Let's say I'm on a fixed tariff of 30p/kWh during the day and 20p/kWh during the night
                 </p>
-                <div className="bg-white rounded-lg p-4 border">
-                  <p className="text-gray-700 font-medium mb-2">(Visualise) Unit Rate [p/kWh] vs Time [hours]</p>
+                <div className="bg-white rounded-lg p-6 border">
+                  <p className="text-gray-700 font-medium mb-4">Unit Rate [p/kWh] vs Time [hours]</p>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={introData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                        <YAxis 
+                          domain={[0, 35]} 
+                          tick={{ fontSize: 12 }}
+                          label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'insideLeft' }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="unitRate"
+                          stroke="#3b82f6"
+                          strokeWidth={3}
+                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
 
@@ -228,10 +296,50 @@ const Index = () => {
                 <p className="text-gray-700 mb-4">
                   I can overlay the two charts to see if I'm charging when it's cheap -
                 </p>
-                <div className="bg-white rounded-lg p-4 border">
-                  <p className="text-gray-700 font-medium mb-2">
-                    (Visualise) Energy Consumption [kWh] on the left y-axis, Unit Rate [p/kWh] on the right y-axis vs Time [hours]
+                <div className="bg-white rounded-lg p-6 border">
+                  <p className="text-gray-700 font-medium mb-4">
+                    Energy Consumption [kWh] on the left y-axis, Unit Rate [p/kWh] on the right y-axis vs Time [hours]
                   </p>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={introData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                        <YAxis 
+                          yAxisId="consumption"
+                          orientation="left"
+                          domain={[0, 12]} 
+                          tick={{ fontSize: 12 }}
+                          stroke="#10b981"
+                          label={{ value: 'Consumption (kW)', angle: -90, position: 'insideLeft' }}
+                        />
+                        <YAxis 
+                          yAxisId="rate"
+                          orientation="right"
+                          domain={[0, 35]} 
+                          tick={{ fontSize: 12 }}
+                          stroke="#3b82f6"
+                          label={{ value: 'Unit Rate (p/kWh)', angle: 90, position: 'insideRight' }}
+                        />
+                        <Line
+                          yAxisId="consumption"
+                          type="monotone"
+                          dataKey="consumption"
+                          stroke="#10b981"
+                          strokeWidth={3}
+                          dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                        />
+                        <Line
+                          yAxisId="rate"
+                          type="monotone"
+                          dataKey="unitRate"
+                          stroke="#3b82f6"
+                          strokeWidth={3}
+                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
                 </div>
               </div>
             </div>
