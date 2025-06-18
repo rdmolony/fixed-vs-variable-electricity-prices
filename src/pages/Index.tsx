@@ -59,28 +59,19 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            Explore Flexible Energy Scenarios
+            Flexible Energy Scenario Explorer
           </h1>
           <div className="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
-            <p>
-              Do you have an EV, a heat pump or a battery?
-            </p>
             <p className="pb-4">
-              If so, flexible electricity tariffs might be of interest to you! 
-            </p>
-            <p>
-              Let's explore a number of scenarios to get a feeling for how 
-              switching from fixed to flexible electricity tariffs
-              might impact your electricity spend and consumption.
+              This dashboard let's us explore a number of scenarios to get a feeling for how 
+              switching to flexible electricity tariffs might impact electricity spend and demand.
             </p>
           </div>
           <div className="bg-amber-50 border border-amber-200 text-sm text-amber-800 rounded-lg p-4 max-w-4xl mx-auto mb-6">
             <p>
               <span className="font-semibold">Caveat:</span> This tool is intended as a storytelling device. 
               It is based on illustrative, fictitious data. 
-            </p>
-            <p>
-            For real historic data and trends go to{" "}
+              For real historic data and trends go to{" "}
               <a 
                 href="https://agile.octopushome.net/" 
                 target="_blank" 
@@ -95,7 +86,7 @@ const Index = () => {
           <div className="max-w-4xl mx-auto mb-12">
             <Collapsible>
               <CollapsibleTrigger className="flex items-center justify-center w-full bg-blue-50 hover:bg-blue-100 rounded-lg p-4 transition-colors">
-                <span className="text-lg font-semibold text-blue-900 mr-2">Want a refresher on tariffs?</span>
+                <span className="text-lg font-semibold text-blue-900 mr-2">What is flexible energy?</span>
                 <ChevronDown className="h-5 w-5 text-blue-700" />
               </CollapsibleTrigger>
               <CollapsibleContent className="bg-white border border-blue-200 rounded-b-lg p-6 text-left">
@@ -137,12 +128,12 @@ const Index = () => {
                   
                   <div>
                     <p className="font-medium text-green-800">Me:</p>
-                    <p className="ml-4">It is hassle. Deciding the right time to buy and sell is hard work, however, there are 3rd parties who can help.</p>
+                    <p className="ml-4">It is hassle. Deciding the right time to buy and sell is hard work. That's why it's better left in the hands of a competent 3rd party who employs a team full time to manage this.</p>
                   </div>
                   
                   <div>
                     <p className="font-medium text-blue-800">X:</p>
-                    <p className="ml-4">Who?</p>
+                    <p className="ml-4">Okay, let's say I am bothered enough to take this risk, does such a 3rd party exist?</p>
                   </div>
                   
                   <div>
@@ -153,7 +144,7 @@ const Index = () => {
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-blue-600 underline hover:text-blue-800"
-                        >in 2018</a>, however, they still caveat that this is still a "Beta Product" (as of the 18th of June 2025).</p>
+                        >in 2018</a>, however, (as of the 18th of June 2025) they still caveat that this is still a "Beta Product".</p>
                       <p>They don't yet, however, <a 
                             href="https://octopus.energy/blog/agile-smart-home-diy/" 
                             target="_blank" 
@@ -183,23 +174,70 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Base Case Section */}
+        {/* Intro Section */}
         <div className="max-w-6xl mx-auto mb-16">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Your Current Setup
+              Intro
             </h2>
-            <div className="bg-blue-50 rounded-lg p-6 mb-6">
-              <p className="text-lg text-gray-700 mb-2">
-                <span className="font-semibold">Fixed Time-of-Use Tariff:</span> You currently charge your EV during off-peak hours (1:00-3:30 AM)
+          </div>
+          
+          <div className="space-y-8 text-left max-w-4xl mx-auto">
+            <div className="bg-white rounded-lg p-6 shadow-sm border">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">What does charging my EV cost me?</h3>
+              <p className="text-gray-700 mb-4">
+                I can calculate the cost by multiplying my electricity consumption by the cost of the electricity.
               </p>
-              <p className="text-gray-600">
-                Consistent pricing: 20p/kWh off-peak, 30p/kWh peak • Predictable but limited savings potential
+              <p className="text-gray-700">
+                Let's imagine I have an electric vehicle that is charged at night between 00:00 and 03:00.
               </p>
+            </div>
+
+            <div className="bg-blue-50 rounded-lg p-4 text-sm text-gray-700">
+              <p className="font-medium mb-2">Sidenote:</p>
+              <p>
+                Assuming the car battery's charge power is 3.6kW (single-phase * 230V * 16A) & the battery is 40kWh 
+                so it takes 11 hours or so to charge from empty ({" "}
+                <a 
+                  href="https://octopusev.com/ev-hub/electric-car-batteries-explained" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  https://octopusev.com/ev-hub/electric-car-batteries-explained
+                </a>
+                )
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-white rounded-lg p-4 border">
+                <p className="text-gray-700 font-medium mb-2">(Visualise) Energy Consumption [kWh] vs Time [hours]</p>
+              </div>
+              
+              <div>
+                <p className="text-gray-700 mb-4">
+                  Let's say I'm on a fixed tariff of 30p/kWh during the day and 20p/kWh during the night
+                </p>
+                <div className="bg-white rounded-lg p-4 border">
+                  <p className="text-gray-700 font-medium mb-2">(Visualise) Unit Rate [p/kWh] vs Time [hours]</p>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-700 mb-4">
+                  I can overlay the two charts to see if I'm charging when it's cheap -
+                </p>
+                <div className="bg-white rounded-lg p-4 border">
+                  <p className="text-gray-700 font-medium mb-2">
+                    (Visualise) Energy Consumption [kWh] on the left y-axis, Unit Rate [p/kWh] on the right y-axis vs Time [hours]
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
           
-          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur">
+          <Card className="shadow-lg border-0 bg-white/90 backdrop-blur mt-8">
             <CardHeader className="text-center">
               <CardTitle className="text-2xl text-gray-800">
                 Fixed Tariff Baseline
