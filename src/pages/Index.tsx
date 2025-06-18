@@ -88,8 +88,6 @@ const Index = () => {
 
   const renderVisualizationOption = () => {
     const commonProps = {
-      width: "100%",
-      height: "100%",
       data: introData,
       margin: { left: 40, right: 5, top: 5, bottom: 5 }
     };
@@ -98,7 +96,7 @@ const Index = () => {
       case 1:
         // Option 1: Cost-Focused Line Chart
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart {...commonProps}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
@@ -153,7 +151,7 @@ const Index = () => {
       case 2:
         // Option 2: Stacked Area Chart
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart {...commonProps}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
@@ -187,7 +185,7 @@ const Index = () => {
       case 3:
         // Option 3: Bar Chart with Cost Focus
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height="100%">
             <BarChart {...commonProps}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
@@ -242,7 +240,7 @@ const Index = () => {
       case 4:
         // Option 4: Dual-Focus with Cost Highlights
         return (
-          <ResponsiveContainer {...commonProps}>
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart {...commonProps}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
               <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
@@ -264,9 +262,9 @@ const Index = () => {
               />
               
               {/* Reference lines for cheap periods */}
-              <ReferenceLine x="00:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
-              <ReferenceLine x="08:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
-              <ReferenceLine x="23:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
+              <ReferenceLine yAxisId="components" x="00:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
+              <ReferenceLine yAxisId="components" x="08:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
+              <ReferenceLine yAxisId="components" x="23:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
               
               {/* Cost area (highlighted) */}
               <Area
