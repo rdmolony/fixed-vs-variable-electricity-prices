@@ -10,7 +10,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Area
 const Index = () => {
   const [hoveredHour, setHoveredHour] = useState<string | null>(null);
   const [useFlexiblePricing, setUseFlexiblePricing] = useState(false);
-  const [scenario, setScenario] = useState<'windy-night' | 'sunny-day'>('windy-night');
+  const [scenario, setScenario] = useState<'windy-night' | 'sunny-day' | 'grid-stress'>('windy-night');
 
   // Generate flexible market prices based on scenario
   const generateFlexiblePrices = () => {
@@ -21,12 +21,19 @@ const Index = () => {
         5, 8, 12, 15, 18, 22, 25, 28, // 08:00-15:00 (morning/afternoon peak)
         32, 35, 30, 25, 18, 12, 8, 4  // 16:00-23:00 (evening peak then declining)
       ];
-    } else {
+    } else if (scenario === 'sunny-day') {
       // Sunny day - cheap solar during midday, expensive at peak times
       return [
         25, 22, 20, 18, 16, 15, 18, 22, // 00:00-07:00 (overnight rates)
         28, 25, 20, 15, 8, 5, 3, 6, // 08:00-15:00 (cheap solar midday)
         12, 25, 35, 42, 38, 35, 30, 28  // 16:00-23:00 (expensive evening peak)
+      ];
+    } else {
+      // Grid stress day - extremely volatile with unpredictable spikes and crashes
+      return [
+        45, 12, 58, 3, 67, 8, 52, 15, // 00:00-07:00 (chaotic overnight)
+        38, 72, 18, 65, 25, 83, 9, 71, // 08:00-15:00 (wild swings)
+        44, 19, 89, 35, 76, 14, 62, 41  // 16:00-23:00 (continued volatility)
       ];
     }
   };
@@ -387,27 +394,39 @@ const Index = () => {
                     {/* Scenario Selection */}
                     <div className="bg-white rounded-lg p-4 border border-gray-200 max-w-lg mx-auto">
                       <p className="text-sm font-medium text-gray-700 mb-3 text-center">Choose Scenario:</p>
-                      <RadioGroup value={scenario} onValueChange={(value: 'windy-night' | 'sunny-day') => setScenario(value)} className="flex justify-center gap-6">
-                        <div className="flex items-center space-x-2">
+                      <RadioGroup value={scenario} onValueChange={(value: 'windy-night' | 'sunny-day' | 'grid-stress') => setScenario(value)} className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
+                        <div className="flex items-center space-x-2 justify-center sm:justify-start">
                           <RadioGroupItem value="windy-night" id="windy-night" />
                           <Label htmlFor="windy-night" className="text-sm font-medium">🌬️ Windy Night</Label>
                         </div>
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-2 justify-center sm:justify-start">
                           <RadioGroupItem value="sunny-day" id="sunny-day" />
                           <Label htmlFor="sunny-day" className="text-sm font-medium">☀️ Sunny Day</Label>
+                        </div>
+                        <div className="flex items-center space-x-2 justify-center sm:justify-start">
+                          <RadioGroupItem value="grid-stress" id="grid-stress" />
+                          <Label htmlFor="grid-stress" className="text-sm font-medium">⚡ Grid Stress</Label>
                         </div>
                       </RadioGroup>
                     </div>
                     
                     {/* Scenario Description */}
-                    <div className="bg-green-50 border border-green-200 text-sm text-green-800 rounded-lg p-3 max-w-2xl mx-auto">
+                    <div className={`border text-sm rounded-lg p-3 max-w-2xl mx-auto ${
+                      scenario === 'grid-stress' 
+                        ? 'bg-red-50 border-red-200 text-red-800' 
+                        : 'bg-green-50 border-green-200 text-green-800'
+                    }`}>
                       {scenario === 'windy-night' ? (
                         <p>
                           <span className="font-semibold">Windy Night:</span> High wind generation creates very cheap (even negative) wholesale prices overnight, perfect for EV charging!
                         </p>
-                      ) : (
+                      ) : scenario === 'sunny-day' ? (
                         <p>
                           <span className="font-semibold">Sunny Day:</span> Solar generation makes midday electricity very cheap, but evening demand drives prices higher than usual.
+                        </p>
+                      ) : (
+                        <p>
+                          <span className="font-semibold">Grid Stress Day:</span> Extreme price volatility due to supply shortages, demand spikes, or grid instability. Prices swing wildly - risky without smart automation!
                         </p>
                       )}
                     </div>
@@ -431,7 +450,7 @@ const Index = () => {
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="hour" tick={{ fontSize: 14 }} />
                     <YAxis 
-                      domain={[0, 140]} 
+                      domain={[0, scenario === 'grid-stress' ? 350 : 140]} 
                       tick={{ fontSize: 14 }}
                       label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
                     />
@@ -467,29 +486,35 @@ const Index = () => {
                       <div className="text-center">
                         <p className="text-sm text-gray-600">Fixed Tariff</p>
                         <p className="text-lg font-semibold text-gray-700">
-                          {Math.round(totalFixedCost)} pence
+                          £{(totalFixedCost/100).toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-500">(£{(totalFixedCost/100).toFixed(2)})</p>
                       </div>
                       <div className="text-center">
                         <p className="text-sm text-gray-600">Market Price</p>
-                        <p className="text-lg font-semibold text-green-600">
-                          {Math.round(totalFlexibleCost)} pence
+                        <p className={`text-lg font-semibold ${totalFlexibleCost < totalFixedCost ? 'text-green-600' : 'text-red-600'}`}>
+                          £{(totalFlexibleCost/100).toFixed(2)}
                         </p>
-                        <p className="text-xs text-gray-500">(£{(totalFlexibleCost/100).toFixed(2)})</p>
                       </div>
                     </div>
-                    <p className="text-sm text-green-700 font-medium">
-                      💰 Savings: {Math.round(totalFixedCost - totalFlexibleCost)} pence (£{((totalFixedCost - totalFlexibleCost)/100).toFixed(2)})
-                    </p>
+                    {totalFlexibleCost < totalFixedCost ? (
+                      <p className="text-sm text-green-700 font-medium">
+                        💰 Savings: £{((totalFixedCost - totalFlexibleCost)/100).toFixed(2)}
+                      </p>
+                    ) : (
+                      <p className="text-sm text-red-700 font-medium">
+                        📈 Extra cost: £{((totalFlexibleCost - totalFixedCost)/100).toFixed(2)}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-600">
-                      With flexible market pricing on this windy night
+                      {scenario === 'windy-night' ? 'With flexible market pricing on this windy night' :
+                       scenario === 'sunny-day' ? 'With flexible market pricing on this sunny day' :
+                       'With flexible market pricing during grid stress conditions'}
                     </p>
                   </div>
                 ) : (
                   <div>
                     <p className="text-lg font-semibold text-gray-700">
-                      Total daily cost: {Math.round(totalCost)} pence (£{(totalCost/100).toFixed(2)})
+                      Total daily cost: £{(totalCost/100).toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
                       With a fixed tariff baseline
@@ -512,7 +537,7 @@ const Index = () => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
                       <YAxis 
-                        domain={[-5, 40]} 
+                        domain={[-5, scenario === 'grid-stress' ? 100 : 40]} 
                         tick={{ fontSize: 10 }}
                         label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
                       />
