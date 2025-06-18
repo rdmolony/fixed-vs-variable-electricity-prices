@@ -1,12 +1,67 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
 import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area, BarChart, Bar, ReferenceLine } from 'recharts';
 
 const Index = () => {
   const [hoveredHour, setHoveredHour] = useState<string | null>(null);
+  const [useFlexiblePricing, setUseFlexiblePricing] = useState(false);
 
-  // Generate simple demonstration data for intro charts
+  // Generate flexible market prices for a windy night scenario
+  const generateFlexiblePrices = () => {
+    // Simulated wholesale prices for a windy night - very cheap overnight due to excess wind generation
+    const windyNightPrices = [
+      2, 1, 0.5, 0.2, -1, -2, -0.5, 0.8, // 00:00-07:00 (very cheap/negative due to wind)
+      5, 8, 12, 15, 18, 22, 25, 28, // 08:00-15:00 (morning/afternoon peak)
+      32, 35, 30, 25, 18, 12, 8, 4  // 16:00-23:00 (evening peak then declining)
+    ];
+    
+    return windyNightPrices;
+  };
+
+  // Generate demonstration data
+  const generateScenarioData = () => {
+    const data = [];
+    const flexiblePrices = generateFlexiblePrices();
+    
+    for (let hour = 0; hour < 24; hour++) {
+      // EV charging between 00:00 and 11:00 (11 hours total)
+      let consumption = 0;
+      if (hour >= 0 && hour < 11) {
+        consumption = 3.6; // Full 3.6kW charging
+      }
+      
+      // Fixed tariff rates
+      const fixedRate = (hour >= 23 || hour < 8) ? 20 : 30;
+      
+      // Choose pricing based on toggle
+      const unitRate = useFlexiblePricing ? flexiblePrices[hour] : fixedRate;
+      
+      // Calculate costs for both scenarios
+      const fixedCost = consumption * fixedRate;
+      const flexibleCost = Math.max(0, consumption * flexiblePrices[hour]); // Don't go below 0 for display
+      const cost = useFlexiblePricing ? flexibleCost : fixedCost;
+      
+      data.push({
+        hour: `${hour.toString().padStart(2, '0')}:00`,
+        consumption,
+        unitRate,
+        fixedRate, // Always include fixed rate for comparison
+        flexibleRate: flexiblePrices[hour], // Always include flexible rate
+        cost,
+        fixedCost, // Always include fixed cost for comparison
+        flexibleCost, // Always include flexible cost
+        isCharging: consumption > 0,
+        isCheapPeriod: useFlexiblePricing ? unitRate < 10 : (hour >= 23 || hour < 8),
+        isNegativePrice: useFlexiblePricing && unitRate < 0
+      });
+    }
+    return data;
+  };
+
+  // Generate simple demonstration data for intro charts (always fixed pricing)
   const generateIntroData = () => {
     const data = [];
     for (let hour = 0; hour < 24; hour++) {
@@ -35,6 +90,12 @@ const Index = () => {
   };
 
   const introData = generateIntroData();
+  const scenarioData = generateScenarioData();
+
+  // Calculate total costs for display
+  const totalFixedCost = scenarioData.reduce((sum, hour) => sum + hour.fixedCost, 0);
+  const totalFlexibleCost = scenarioData.reduce((sum, hour) => sum + hour.flexibleCost, 0);
+  const totalCost = useFlexiblePricing ? totalFlexibleCost : totalFixedCost;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -65,15 +126,16 @@ const Index = () => {
             </p>
           </div>
 
-        {/* Intro Section */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Intro
-            </h2>
-          </div>
+        <Tabs defaultValue="scenarios" className="max-w-6xl mx-auto">
+          <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsTrigger value="learn">📚 Learn the Basics</TabsTrigger>
+            <TabsTrigger value="scenarios">🔧 Explore Scenarios</TabsTrigger>
+          </TabsList>
 
-          <div className="max-w-4xl mx-auto mb-12">
+          <TabsContent value="learn">
+            {/* Intro Section */}
+            <div className="max-w-6xl mx-auto mb-16">
+              <div className="max-w-4xl mx-auto mb-12">
             <Collapsible>
               <CollapsibleTrigger className="flex items-center justify-center w-full bg-blue-50 hover:bg-blue-100 rounded-lg p-4 transition-colors">
                 <span className="text-lg font-semibold text-blue-900 mr-2">Need a refresher on electricity tariffs?</span>
@@ -161,10 +223,9 @@ const Index = () => {
                 </div>
               </CollapsibleContent>
             </Collapsible>
-          </div>
-        </div>
+              </div>
 
-          <div className="space-y-8 text-left max-w-4xl mx-auto">
+              <div className="space-y-8 text-left max-w-4xl mx-auto">
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">What does charging my EV cost me?</h3>
               <p className="text-gray-700">
@@ -282,18 +343,43 @@ const Index = () => {
 
             </div>
           </div>
-        </div>
+            </div>
+          </TabsContent>
 
-        {/* Scenarios Section */}
-        <div className="max-w-6xl mx-auto mb-16">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">
-              Scenarios
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              Compare different charging strategies and their impact on electricity costs
-            </p>
-          </div>
+          <TabsContent value="scenarios">
+            {/* Scenarios Section */}
+            <div className="max-w-6xl mx-auto mb-16">
+              <div className="text-center mb-8">
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">
+                  Scenarios
+                </h2>
+                <p className="text-gray-600 max-w-2xl mx-auto mb-6">
+                  Compare different charging strategies and their impact on electricity costs
+                </p>
+                
+                {/* Pricing Toggle */}
+                <div className="flex items-center justify-center gap-4 bg-white rounded-lg p-4 border-2 border-blue-200 max-w-md mx-auto">
+                  <span className={`font-medium transition-colors ${!useFlexiblePricing ? 'text-blue-600' : 'text-gray-500'}`}>
+                    Fixed Tariff
+                  </span>
+                  <Switch
+                    checked={useFlexiblePricing}
+                    onCheckedChange={setUseFlexiblePricing}
+                    className="data-[state=checked]:bg-green-500"
+                  />
+                  <span className={`font-medium transition-colors ${useFlexiblePricing ? 'text-green-600' : 'text-gray-500'}`}>
+                    Flexible Market Prices
+                  </span>
+                </div>
+                
+                {useFlexiblePricing && (
+                  <div className="bg-green-50 border border-green-200 text-sm text-green-800 rounded-lg p-3 max-w-2xl mx-auto mt-4">
+                    <p>
+                      <span className="font-semibold">Windy Night Scenario:</span> High wind generation creates very cheap (even negative) wholesale prices overnight, perfect for EV charging!
+                    </p>
+                  </div>
+                )}
+              </div>
 
           <div className="space-y-8 text-left max-w-5xl mx-auto">
             {/* Primary Cost Visualization - Emphasized */}
@@ -303,36 +389,79 @@ const Index = () => {
               </p>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart 
-                    data={introData}
+                  <LineChart 
+                    data={scenarioData}
                     onMouseMove={(e) => e?.activeLabel && setHoveredHour(e.activeLabel)}
                     onMouseLeave={() => setHoveredHour(null)}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                     <XAxis dataKey="hour" tick={{ fontSize: 14 }} />
                     <YAxis 
-                      domain={[0, 120]} 
+                      domain={[0, 140]} 
                       tick={{ fontSize: 14 }}
                       label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
                     />
-                    <Area
+                    
+                    {/* Fixed cost baseline - always shown in dark grey */}
+                    <Line
                       type="monotone"
-                      dataKey="cost"
-                      stroke="#ef4444"
-                      fill="#fef2f2"
-                      fillOpacity={0.8}
-                      strokeWidth={4}
+                      dataKey="fixedCost"
+                      stroke="#374151"
+                      strokeWidth={3}
+                      dot={{ fill: "#374151", strokeWidth: 2, r: 3 }}
+                      name="Fixed Tariff Cost"
                     />
-                  </AreaChart>
+                    
+                    {/* Flexible cost - overlaid in color when active */}
+                    {useFlexiblePricing && (
+                      <Line
+                        type="monotone"
+                        dataKey="flexibleCost"
+                        stroke="#10b981"
+                        strokeWidth={4}
+                        dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
+                        name="Market Price Cost"
+                      />
+                    )}
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
               <div className="text-center mt-4">
-                <p className="text-lg font-semibold text-red-600">
-                  Total daily cost: 792 pence (£7.92)
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  This is what you pay for charging your EV with a fixed tariff
-                </p>
+                {useFlexiblePricing ? (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Fixed Tariff</p>
+                        <p className="text-lg font-semibold text-gray-700">
+                          {Math.round(totalFixedCost)} pence
+                        </p>
+                        <p className="text-xs text-gray-500">(£{(totalFixedCost/100).toFixed(2)})</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-sm text-gray-600">Market Price</p>
+                        <p className="text-lg font-semibold text-green-600">
+                          {Math.round(totalFlexibleCost)} pence
+                        </p>
+                        <p className="text-xs text-gray-500">(£{(totalFlexibleCost/100).toFixed(2)})</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-green-700 font-medium">
+                      💰 Savings: {Math.round(totalFixedCost - totalFlexibleCost)} pence (£{((totalFixedCost - totalFlexibleCost)/100).toFixed(2)})
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      With flexible market pricing on this windy night
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-lg font-semibold text-gray-700">
+                      Total daily cost: {Math.round(totalCost)} pence (£{(totalCost/100).toFixed(2)})
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      With a fixed tariff baseline
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -341,25 +470,41 @@ const Index = () => {
               {/* Unit Rate Chart - De-emphasized */}
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 opacity-75">
                 <p className="text-sm font-medium text-gray-600 mb-3 text-center">
-                  Hourly Unit Rates
+                  {useFlexiblePricing ? "Market vs Fixed Rates" : "Hourly Unit Rates"}
                 </p>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={introData}>
+                    <LineChart data={scenarioData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
                       <YAxis 
-                        domain={[0, 35]} 
+                        domain={[-5, 40]} 
                         tick={{ fontSize: 10 }}
                         label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
                       />
+                      <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="2 2" />
+                      
+                      {/* Fixed rates - always shown as baseline in dark grey */}
                       <Line
                         type="monotone"
-                        dataKey="unitRate"
-                        stroke="#6b7280"
+                        dataKey="fixedRate"
+                        stroke="#374151"
                         strokeWidth={2}
-                        dot={{ fill: '#6b7280', strokeWidth: 1, r: 2 }}
+                        dot={{ fill: "#374151", strokeWidth: 1, r: 2 }}
+                        name="Fixed Tariff"
                       />
+                      
+                      {/* Flexible rates - overlaid in color when active */}
+                      {useFlexiblePricing && (
+                        <Line
+                          type="monotone"
+                          dataKey="flexibleRate"
+                          stroke="#10b981"
+                          strokeWidth={3}
+                          dot={{ fill: "#10b981", strokeWidth: 2, r: 3 }}
+                          name="Market Price"
+                        />
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
@@ -372,7 +517,7 @@ const Index = () => {
                 </p>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={introData}>
+                    <LineChart data={scenarioData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
                       <XAxis dataKey="hour" tick={{ fontSize: 10 }} />
                       <YAxis 
@@ -393,13 +538,16 @@ const Index = () => {
               </div>
             </div>
 
-            <div className="text-center text-sm text-gray-500">
-              <p>The cost visualization above shows the combined effect of consumption patterns and unit rates</p>
+              <div className="text-center text-sm text-gray-500">
+                <p>The cost visualization above shows the combined effect of consumption patterns and unit rates</p>
+              </div>
             </div>
           </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
+  </div>
   );
 };
 
