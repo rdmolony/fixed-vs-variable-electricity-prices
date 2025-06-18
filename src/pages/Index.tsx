@@ -5,11 +5,13 @@ import ElectricityChart from "@/components/ElectricityChart";
 import { useState, useEffect } from "react";
 import type { CarouselApi } from "@/components/ui/carousel";
 import { ArrowDown, ChevronDown } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area, BarChart, Bar, ReferenceLine } from 'recharts';
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
+  const [visualizationOption, setVisualizationOption] = useState(1);
 
   const variableScenarios = [
     {
@@ -67,16 +69,243 @@ const Index = () => {
       // Fixed tariff: 20p night (23:00-08:00), 30p day (08:00-23:00)
       const unitRate = (hour >= 23 || hour < 8) ? 20 : 30;
       
+      // Calculate cost (pence per hour)
+      const cost = consumption * unitRate;
+      
       data.push({
         hour: `${hour.toString().padStart(2, '0')}:00`,
         consumption,
-        unitRate
+        unitRate,
+        cost,
+        isCharging: consumption > 0,
+        isCheapPeriod: (hour >= 23 || hour < 8)
       });
     }
     return data;
   };
 
   const introData = generateIntroData();
+
+  const renderVisualizationOption = () => {
+    const commonProps = {
+      width: "100%",
+      height: "100%",
+      data: introData,
+      margin: { left: 40, right: 5, top: 5, bottom: 5 }
+    };
+
+    switch (visualizationOption) {
+      case 1:
+        // Option 1: Cost-Focused Line Chart
+        return (
+          <ResponsiveContainer {...commonProps}>
+            <LineChart {...commonProps}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+              <YAxis 
+                yAxisId="cost"
+                orientation="left"
+                domain={[0, 120]} 
+                tick={{ fontSize: 12 }}
+                stroke="#ef4444"
+                label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
+              />
+              <YAxis 
+                yAxisId="components"
+                orientation="right"
+                domain={[0, 35]} 
+                tick={{ fontSize: 12 }}
+                stroke="#9ca3af"
+                label={{ value: 'Rate/Consumption', angle: 90, position: 'outsideRight' }}
+              />
+              {/* De-emphasized component lines */}
+              <Line
+                yAxisId="components"
+                type="monotone"
+                dataKey="unitRate"
+                stroke="#9ca3af"
+                strokeWidth={1}
+                strokeOpacity={0.5}
+                dot={false}
+              />
+              <Line
+                yAxisId="components"
+                type="monotone"
+                dataKey="consumption"
+                stroke="#cbd5e1"
+                strokeWidth={1}
+                strokeOpacity={0.5}
+                dot={false}
+              />
+              {/* Emphasized cost line */}
+              <Line
+                yAxisId="cost"
+                type="monotone"
+                dataKey="cost"
+                stroke="#ef4444"
+                strokeWidth={4}
+                dot={{ fill: '#ef4444', strokeWidth: 2, r: 6 }}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        );
+
+      case 2:
+        // Option 2: Stacked Area Chart
+        return (
+          <ResponsiveContainer {...commonProps}>
+            <AreaChart {...commonProps}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+              <YAxis 
+                domain={[0, 120]} 
+                tick={{ fontSize: 12 }}
+                label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
+              />
+              {/* Background areas for components (subtle) */}
+              <Area
+                type="monotone"
+                dataKey="unitRate"
+                stackId="1"
+                stroke="#e2e8f0"
+                fill="#f8fafc"
+                fillOpacity={0.3}
+              />
+              {/* Prominent cost area */}
+              <Area
+                type="monotone"
+                dataKey="cost"
+                stroke="#ef4444"
+                fill="#fef2f2"
+                fillOpacity={0.8}
+                strokeWidth={3}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+
+      case 3:
+        // Option 3: Bar Chart with Cost Focus
+        return (
+          <ResponsiveContainer {...commonProps}>
+            <BarChart {...commonProps}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+              <YAxis 
+                yAxisId="cost"
+                orientation="left"
+                domain={[0, 120]} 
+                tick={{ fontSize: 12 }}
+                stroke="#ef4444"
+                label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
+              />
+              <YAxis 
+                yAxisId="components"
+                orientation="right"
+                domain={[0, 35]} 
+                tick={{ fontSize: 12 }}
+                stroke="#9ca3af"
+                label={{ value: 'Rate/Consumption', angle: 90, position: 'outsideRight' }}
+              />
+              {/* Cost bars (main focus) */}
+              <Bar
+                yAxisId="cost"
+                dataKey="cost"
+                fill="#ef4444"
+                fillOpacity={0.8}
+                stroke="#dc2626"
+                strokeWidth={1}
+              />
+              {/* Subtle line overlays */}
+              <Line
+                yAxisId="components"
+                type="monotone"
+                dataKey="unitRate"
+                stroke="#9ca3af"
+                strokeWidth={1}
+                strokeOpacity={0.6}
+                dot={false}
+              />
+              <Line
+                yAxisId="components"
+                type="monotone"
+                dataKey="consumption"
+                stroke="#cbd5e1"
+                strokeWidth={1}
+                strokeOpacity={0.6}
+                dot={false}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        );
+
+      case 4:
+        // Option 4: Dual-Focus with Cost Highlights
+        return (
+          <ResponsiveContainer {...commonProps}>
+            <AreaChart {...commonProps}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+              <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+              <YAxis 
+                yAxisId="cost"
+                orientation="left"
+                domain={[0, 120]} 
+                tick={{ fontSize: 12 }}
+                stroke="#ef4444"
+                label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
+              />
+              <YAxis 
+                yAxisId="components"
+                orientation="right"
+                domain={[0, 35]} 
+                tick={{ fontSize: 12 }}
+                stroke="#3b82f6"
+                label={{ value: 'Rate/Consumption', angle: 90, position: 'outsideRight' }}
+              />
+              
+              {/* Reference lines for cheap periods */}
+              <ReferenceLine x="00:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
+              <ReferenceLine x="08:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
+              <ReferenceLine x="23:00" stroke="#10b981" strokeDasharray="2 2" strokeOpacity={0.5} />
+              
+              {/* Cost area (highlighted) */}
+              <Area
+                yAxisId="cost"
+                type="monotone"
+                dataKey="cost"
+                stroke="#ef4444"
+                fill="#fef2f2"
+                fillOpacity={0.6}
+                strokeWidth={3}
+              />
+              
+              {/* Component lines (de-emphasized) */}
+              <Line
+                yAxisId="components"
+                type="monotone"
+                dataKey="unitRate"
+                stroke="#3b82f6"
+                strokeWidth={2}
+                strokeOpacity={0.7}
+                dot={false}
+              />
+              <Line
+                yAxisId="components"
+                type="monotone"
+                dataKey="consumption"
+                stroke="#10b981"
+                strokeWidth={2}
+                strokeOpacity={0.7}
+                dot={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -210,118 +439,83 @@ const Index = () => {
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">What does charging my EV cost me?</h3>
               <p className="text-gray-700 mb-4">
-                I can calculate the cost by multiplying my electricity consumption by the cost of the electricity.
+                The key insight is that <strong>cost = consumption × unit rate</strong>. By charging during cheaper periods, we minimize the total cost.
               </p>
               <p className="text-gray-700">
-                Let's imagine I have an electric vehicle that is charged from empty at night between 00:00 and 11:00 -
+                Let's see this in action with different visualization approaches:
               </p>
+            </div>
+
+            {/* Visualization Option Selector */}
+            <div className="flex flex-wrap gap-2 justify-center mb-4">
+              {[
+                { id: 1, name: "Cost-Focused Lines" },
+                { id: 2, name: "Area Chart" },
+                { id: 3, name: "Cost Bars" },
+                { id: 4, name: "Dual-Focus" }
+              ].map((option) => (
+                <Button
+                  key={option.id}
+                  variant={visualizationOption === option.id ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setVisualizationOption(option.id)}
+                >
+                  {option.name}
+                </Button>
+              ))}
             </div>
 
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-6 border">
+                <h4 className="text-lg font-medium text-gray-800 mb-4">
+                  EV Charging Cost Analysis
+                  {visualizationOption === 1 && " - Cost-Focused Lines"}
+                  {visualizationOption === 2 && " - Area Chart"}
+                  {visualizationOption === 3 && " - Cost Bars"}
+                  {visualizationOption === 4 && " - Dual-Focus with Highlights"}
+                </h4>
                 <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={introData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                      <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                      <YAxis 
-                        domain={[0, 12]} 
-                        tick={{ fontSize: 12 }}
-                        label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
-                      />
-                      <Line
-                        type="monotone"
-                        dataKey="consumption"
-                        stroke="#10b981"
-                        strokeWidth={3}
-                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
+                  {renderVisualizationOption()}
+                </div>
+                <div className="mt-4 text-sm text-gray-600">
+                  {visualizationOption === 1 && (
+                    <div className="space-y-2">
+                      <p><span className="inline-block w-4 h-0.5 bg-red-500 mr-2"></span><strong>Red line:</strong> Hourly cost (pence) - this is what you actually pay</p>
+                      <p><span className="inline-block w-4 h-0.5 bg-gray-400 mr-2"></span><strong>Gray lines:</strong> Unit rate and consumption (components of cost)</p>
+                      <p className="text-green-700 font-medium">💡 Notice: You're only charged during hours 00:00-11:00 when you're actually charging, and it's during the cheaper night rate!</p>
+                    </div>
+                  )}
+                  {visualizationOption === 2 && (
+                    <div className="space-y-2">
+                      <p><span className="inline-block w-4 h-2 bg-red-100 border border-red-500 mr-2"></span><strong>Red area:</strong> Hourly cost accumulation</p>
+                      <p><span className="inline-block w-4 h-2 bg-gray-100 border border-gray-300 mr-2"></span><strong>Light area:</strong> Unit rate component</p>
+                      <p className="text-green-700 font-medium">💡 The area visualization clearly shows the 'volume' of your electricity spend</p>
+                    </div>
+                  )}
+                  {visualizationOption === 3 && (
+                    <div className="space-y-2">
+                      <p><span className="inline-block w-4 h-4 bg-red-500 mr-2"></span><strong>Red bars:</strong> Hourly cost (pence)</p>
+                      <p><span className="inline-block w-4 h-0.5 bg-gray-400 mr-2"></span><strong>Gray lines:</strong> Unit rate and consumption</p>
+                      <p className="text-green-700 font-medium">💡 Bar chart makes it easy to see exactly when you're spending money</p>
+                    </div>
+                  )}
+                  {visualizationOption === 4 && (
+                    <div className="space-y-2">
+                      <p><span className="inline-block w-4 h-2 bg-red-100 border border-red-500 mr-2"></span><strong>Red area:</strong> Cost accumulation</p>
+                      <p><span className="inline-block w-4 h-0.5 bg-blue-500 mr-2"></span><strong>Blue line:</strong> Unit rate</p>
+                      <p><span className="inline-block w-4 h-0.5 bg-green-500 mr-2"></span><strong>Green line:</strong> Consumption</p>
+                      <p><span className="inline-block w-4 h-0.5 bg-green-500 opacity-50 mr-2" style={{borderStyle: 'dashed'}}></span><strong>Dashed lines:</strong> Cheap electricity periods</p>
+                      <p className="text-green-700 font-medium">💡 This view shows how consumption timing aligns with cheap periods</p>
+                    </div>
+                  )}
                 </div>
               </div>
 
           <div className="bg-blue-50 border-blue-200 text-sm text-gray-500 rounded-lg p-4 max-w-4xl mx-auto mb-6">
             <p>
-              <span className="font-semibold">Note:</span> Assuming the car battery's charge power is 3.6kW (single-phase * 230V * 16A) & the battery is 40kWh. This means it takes 11 hours or so to charge from empty.
+              <span className="font-semibold">Note:</span> Assuming the car battery's charge power is 3.6kW (single-phase * 230V * 16A) & the battery is 40kWh. This means it takes 11 hours or so to charge from empty. Total daily cost: <strong>{introData.reduce((sum, hour) => sum + hour.cost, 0)}p</strong>
             </p>
           </div>
-              
-              <div>
-                <p className="text-gray-700 mb-4">
-                  Let's say I'm on a fixed tariff of 20p/kWh during the night and 30p/kWh during the day -
-                </p>
-                <div className="bg-white rounded-lg p-6 border">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={introData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                        <YAxis 
-                          domain={[0, 35]} 
-                          tick={{ fontSize: 12 }}
-                          label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="unitRate"
-                          stroke="#3b82f6"
-                          strokeWidth={3}
-                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-gray-700 mb-4">
-                  I can overlay the two charts to see if I'm charging when it's cheap -
-                </p>
-                <div className="bg-white rounded-lg p-6 border">
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={introData} margin={{ left: 40, right: 5, top: 5, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
-                        <YAxis 
-                          yAxisId="consumption"
-                          orientation="left"
-                          domain={[0, 12]} 
-                          tick={{ fontSize: 12 }}
-                          stroke="#10b981"
-                          label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
-                        />
-                        <YAxis 
-                          yAxisId="rate"
-                          orientation="right"
-                          domain={[0, 35]} 
-                          tick={{ fontSize: 12 }}
-                          stroke="#3b82f6"
-                          label={{ value: 'Unit Rate (p/kWh)', angle: 90, position: 'outsideRight' }}
-                        />
-                        <Line
-                          yAxisId="consumption"
-                          type="monotone"
-                          dataKey="consumption"
-                          stroke="#10b981"
-                          strokeWidth={3}
-                          dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                        />
-                        <Line
-                          yAxisId="rate"
-                          type="monotone"
-                          dataKey="unitRate"
-                          stroke="#3b82f6"
-                          strokeWidth={3}
-                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           
