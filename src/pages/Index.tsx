@@ -436,84 +436,116 @@ const Index = () => {
           <div className="space-y-8 text-left max-w-4xl mx-auto">
             <div>
               <h3 className="text-xl font-semibold text-gray-800 mb-4">What does charging my EV cost me?</h3>
-              <p className="text-gray-700 mb-4">
-                The key insight is that <strong>cost = consumption × unit rate</strong>. By charging during cheaper periods, we minimize the total cost.
-              </p>
               <p className="text-gray-700">
-                Let's see this in action with different visualization approaches:
+                Let's imagine I have an electric vehicle that is charged from empty at night between 00:00 and 11:00 -
               </p>
-            </div>
-
-            {/* Visualization Option Selector */}
-            <div className="flex flex-wrap gap-2 justify-center mb-4">
-              {[
-                { id: 1, name: "Cost-Focused Lines" },
-                { id: 2, name: "Area Chart" },
-                { id: 3, name: "Cost Bars" },
-                { id: 4, name: "Dual-Focus" }
-              ].map((option) => (
-                <Button
-                  key={option.id}
-                  variant={visualizationOption === option.id ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setVisualizationOption(option.id)}
-                >
-                  {option.name}
-                </Button>
-              ))}
             </div>
 
             <div className="space-y-4">
               <div className="bg-white rounded-lg p-6 border">
-                <h4 className="text-lg font-medium text-gray-800 mb-4">
-                  EV Charging Cost Analysis
-                  {visualizationOption === 1 && " - Cost-Focused Lines"}
-                  {visualizationOption === 2 && " - Area Chart"}
-                  {visualizationOption === 3 && " - Cost Bars"}
-                  {visualizationOption === 4 && " - Dual-Focus with Highlights"}
-                </h4>
                 <div className="h-64">
-                  {renderVisualizationOption()}
-                </div>
-                <div className="mt-4 text-sm text-gray-600">
-                  {visualizationOption === 1 && (
-                    <div className="space-y-2">
-                      <p><span className="inline-block w-4 h-0.5 bg-red-500 mr-2"></span><strong>Red line:</strong> Hourly cost (pence) - this is what you actually pay</p>
-                      <p><span className="inline-block w-4 h-0.5 bg-gray-400 mr-2"></span><strong>Gray lines:</strong> Unit rate and consumption (components of cost)</p>
-                      <p className="text-green-700 font-medium">💡 Notice: You're only charged during hours 00:00-11:00 when you're actually charging, and it's during the cheaper night rate!</p>
-                    </div>
-                  )}
-                  {visualizationOption === 2 && (
-                    <div className="space-y-2">
-                      <p><span className="inline-block w-4 h-2 bg-red-100 border border-red-500 mr-2"></span><strong>Red area:</strong> Hourly cost accumulation</p>
-                      <p><span className="inline-block w-4 h-2 bg-gray-100 border border-gray-300 mr-2"></span><strong>Light area:</strong> Unit rate component</p>
-                      <p className="text-green-700 font-medium">💡 The area visualization clearly shows the 'volume' of your electricity spend</p>
-                    </div>
-                  )}
-                  {visualizationOption === 3 && (
-                    <div className="space-y-2">
-                      <p><span className="inline-block w-4 h-4 bg-red-500 mr-2"></span><strong>Red bars:</strong> Hourly cost (pence)</p>
-                      <p><span className="inline-block w-4 h-0.5 bg-gray-400 mr-2"></span><strong>Gray lines:</strong> Unit rate and consumption</p>
-                      <p className="text-green-700 font-medium">💡 Bar chart makes it easy to see exactly when you're spending money</p>
-                    </div>
-                  )}
-                  {visualizationOption === 4 && (
-                    <div className="space-y-2">
-                      <p><span className="inline-block w-4 h-2 bg-red-100 border border-red-500 mr-2"></span><strong>Red area:</strong> Cost accumulation</p>
-                      <p><span className="inline-block w-4 h-0.5 bg-blue-500 mr-2"></span><strong>Blue line:</strong> Unit rate</p>
-                      <p><span className="inline-block w-4 h-0.5 bg-green-500 mr-2"></span><strong>Green line:</strong> Consumption</p>
-                      <p><span className="inline-block w-4 h-0.5 bg-green-500 opacity-50 mr-2" style={{borderStyle: 'dashed'}}></span><strong>Dashed lines:</strong> Cheap electricity periods</p>
-                      <p className="text-green-700 font-medium">💡 This view shows how consumption timing aligns with cheap periods</p>
-                    </div>
-                  )}
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={introData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                      <YAxis 
+                        domain={[0, 12]} 
+                        tick={{ fontSize: 12 }}
+                        label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="consumption"
+                        stroke="#10b981"
+                        strokeWidth={3}
+                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
                 </div>
               </div>
 
           <div className="bg-blue-50 border-blue-200 text-sm text-gray-500 rounded-lg p-4 max-w-4xl mx-auto mb-6">
             <p>
-              <span className="font-semibold">Note:</span> Assuming the car battery's charge power is 3.6kW (single-phase * 230V * 16A) & the battery is 40kWh. This means it takes 11 hours or so to charge from empty. Total daily cost: <strong>{introData.reduce((sum, hour) => sum + hour.cost, 0)}p</strong>
+              <span className="font-semibold">Note:</span> Assuming the car battery's charge power is 3.6kW (single-phase * 230V * 16A) & the battery is 40kWh. This means it takes 11 hours or so to charge from empty.
             </p>
           </div>
+              
+              <div>
+                <p className="text-gray-700 mb-4">
+                  Let's say I'm on a fixed tariff of 20p/kWh during the night and 30p/kWh during the day -
+                </p>
+                <div className="bg-white rounded-lg p-6 border">
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={introData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                        <YAxis 
+                          domain={[0, 35]} 
+                          tick={{ fontSize: 12 }}
+                          label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="unitRate"
+                          stroke="#3b82f6"
+                          strokeWidth={3}
+                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-gray-700 mb-4">
+                  I can overlay the two charts to see if I'm charging when it's cheap -
+                </p>
+                <div className="bg-white rounded-lg p-6 border">
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={introData} margin={{ left: 40, right: 5, top: 5, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                        <YAxis 
+                          yAxisId="consumption"
+                          orientation="left"
+                          domain={[0, 12]} 
+                          tick={{ fontSize: 12 }}
+                          stroke="#10b981"
+                          label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
+                        />
+                        <YAxis 
+                          yAxisId="rate"
+                          orientation="right"
+                          domain={[0, 35]} 
+                          tick={{ fontSize: 12 }}
+                          stroke="#3b82f6"
+                          label={{ value: 'Unit Rate (p/kWh)', angle: 90, position: 'outsideRight' }}
+                        />
+                        <Line
+                          yAxisId="consumption"
+                          type="monotone"
+                          dataKey="consumption"
+                          stroke="#10b981"
+                          strokeWidth={3}
+                          dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                        />
+                        <Line
+                          yAxisId="rate"
+                          type="monotone"
+                          dataKey="unitRate"
+                          stroke="#3b82f6"
+                          strokeWidth={3}
+                          dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
