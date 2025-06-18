@@ -1,6 +1,8 @@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { ChevronDown } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, AreaChart, Area, BarChart, Bar, ReferenceLine } from 'recharts';
@@ -8,17 +10,25 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Area
 const Index = () => {
   const [hoveredHour, setHoveredHour] = useState<string | null>(null);
   const [useFlexiblePricing, setUseFlexiblePricing] = useState(false);
+  const [scenario, setScenario] = useState<'windy-night' | 'sunny-day'>('windy-night');
 
-  // Generate flexible market prices for a windy night scenario
+  // Generate flexible market prices based on scenario
   const generateFlexiblePrices = () => {
-    // Simulated wholesale prices for a windy night - very cheap overnight due to excess wind generation
-    const windyNightPrices = [
-      2, 1, 0.5, 0.2, -1, -2, -0.5, 0.8, // 00:00-07:00 (very cheap/negative due to wind)
-      5, 8, 12, 15, 18, 22, 25, 28, // 08:00-15:00 (morning/afternoon peak)
-      32, 35, 30, 25, 18, 12, 8, 4  // 16:00-23:00 (evening peak then declining)
-    ];
-    
-    return windyNightPrices;
+    if (scenario === 'windy-night') {
+      // Simulated wholesale prices for a windy night - very cheap overnight due to excess wind generation
+      return [
+        2, 1, 0.5, 0.2, -1, -2, -0.5, 0.8, // 00:00-07:00 (very cheap/negative due to wind)
+        5, 8, 12, 15, 18, 22, 25, 28, // 08:00-15:00 (morning/afternoon peak)
+        32, 35, 30, 25, 18, 12, 8, 4  // 16:00-23:00 (evening peak then declining)
+      ];
+    } else {
+      // Sunny day - cheap solar during midday, expensive at peak times
+      return [
+        25, 22, 20, 18, 16, 15, 18, 22, // 00:00-07:00 (overnight rates)
+        28, 25, 20, 15, 8, 5, 3, 6, // 08:00-15:00 (cheap solar midday)
+        12, 25, 35, 42, 38, 35, 30, 28  // 16:00-23:00 (expensive evening peak)
+      ];
+    }
   };
 
   // Generate demonstration data
@@ -373,10 +383,34 @@ const Index = () => {
                 </div>
                 
                 {useFlexiblePricing && (
-                  <div className="bg-green-50 border border-green-200 text-sm text-green-800 rounded-lg p-3 max-w-2xl mx-auto mt-4">
-                    <p>
-                      <span className="font-semibold">Windy Night Scenario:</span> High wind generation creates very cheap (even negative) wholesale prices overnight, perfect for EV charging!
-                    </p>
+                  <div className="space-y-4 mt-4">
+                    {/* Scenario Selection */}
+                    <div className="bg-white rounded-lg p-4 border border-gray-200 max-w-lg mx-auto">
+                      <p className="text-sm font-medium text-gray-700 mb-3 text-center">Choose Scenario:</p>
+                      <RadioGroup value={scenario} onValueChange={(value: 'windy-night' | 'sunny-day') => setScenario(value)} className="flex justify-center gap-6">
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="windy-night" id="windy-night" />
+                          <Label htmlFor="windy-night" className="text-sm font-medium">🌬️ Windy Night</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="sunny-day" id="sunny-day" />
+                          <Label htmlFor="sunny-day" className="text-sm font-medium">☀️ Sunny Day</Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                    
+                    {/* Scenario Description */}
+                    <div className="bg-green-50 border border-green-200 text-sm text-green-800 rounded-lg p-3 max-w-2xl mx-auto">
+                      {scenario === 'windy-night' ? (
+                        <p>
+                          <span className="font-semibold">Windy Night:</span> High wind generation creates very cheap (even negative) wholesale prices overnight, perfect for EV charging!
+                        </p>
+                      ) : (
+                        <p>
+                          <span className="font-semibold">Sunny Day:</span> Solar generation makes midday electricity very cheap, but evening demand drives prices higher than usual.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
