@@ -1,10 +1,11 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import ElectricityChart from "@/components/ElectricityChart";
 import { useState, useEffect } from "react";
 import type { CarouselApi } from "@/components/ui/carousel";
-import { ArrowDown } from "lucide-react";
+import { ArrowDown, ChevronDown } from "lucide-react";
 
 const Index = () => {
   const [api, setApi] = useState<CarouselApi>();
@@ -56,14 +57,135 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            EV Charging Flexibility Dashboard
+            Flexible Energy Scenario Explorer
           </h1>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Discover how smart EV charging can reduce your electricity costs by 
-            shifting charging to optimal pricing periods
+          <p className="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
+            This dashboard lets us explore a number of scenarios to get a feeling for how 
+            switching to flexible electricity tariffs might impact electricity spend and demand.
           </p>
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 max-w-4xl mx-auto mb-6">
+            <p className="text-sm text-amber-800">
+              <span className="font-semibold">Caveat:</span> This tool is intended as a storytelling device. 
+              It is based on illustrative, fictitious data. For real historic data and trends go to{" "}
+              <a 
+                href="https://agile.octopushome.net/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-amber-900 underline hover:text-amber-700"
+              >
+                https://agile.octopushome.net/
+              </a>
+            </p>
+          </div>
+          
+          <div className="max-w-4xl mx-auto mb-12">
+            <Collapsible>
+              <CollapsibleTrigger className="flex items-center justify-center w-full bg-blue-50 hover:bg-blue-100 rounded-lg p-4 transition-colors">
+                <span className="text-lg font-semibold text-blue-900 mr-2">What is flexible energy?</span>
+                <ChevronDown className="h-5 w-5 text-blue-700" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="bg-white border border-blue-200 rounded-b-lg p-6 text-left">
+                <div className="space-y-4 text-gray-700">
+                  <div>
+                    <p className="font-medium text-blue-800">X:</p>
+                    <p className="ml-4">I have an EV, does it matter when I charge it?</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-green-800">Me:</p>
+                    <p className="ml-4">Well, it depends. Do you pay time-of-use rates for your electricity?</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-blue-800">X:</p>
+                    <p className="ml-4">What's that?</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-green-800">Me:</p>
+                    <p className="ml-4">Typically electricity suppliers will charge you a fixed rate on your electricity depending on when you use it. You might be charged a night time tariff between 23:00 and 08:00, and a day time tariff between 08:00 and 23:00. If you charge your EV during the cheaper period you'll save money. If instead, you have access to flexible electricity rates, you could save more again.</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-blue-800">X:</p>
+                    <p className="ml-4">How?</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-green-800">Me:</p>
+                    <p className="ml-4">Well, it all comes down to the wholesale electricity markets. If you have access to these prices, they may well be lower than your fixed rates. However, bear in mind that they may also be far higher!</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-blue-800">X:</p>
+                    <p className="ml-4">That sounds like a lot of hassle</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-green-800">Me:</p>
+                    <p className="ml-4">It is hassle. Deciding the right time to buy and sell is hard work. That's why it's better left in the hands of a competent 3rd party who employs a team full time to manage this.</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-blue-800">X:</p>
+                    <p className="ml-4">Okay, let's say I am bothered enough to take this risk, does such a 3rd party exist?</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-green-800">Me:</p>
+                    <div className="ml-4 space-y-2">
+                      <p>This depends on where you live. Octopus Energy, a UK-based electricity supplier, first announced flexible tariffs (Agile Octopus) in 2018, however, (as of the 18th of June 2025) they still caveat that this is still a "Beta Product".</p>
+                      <p>
+                        <a 
+                          href="https://octopusgroup.com/newsroom/latest-news/agile-octopus-time-of-use-tariff-pays-customers-to-use-energy-for-first-time-ever/" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="text-blue-600 underline hover:text-blue-800"
+                        >
+                          https://octopusgroup.com/newsroom/latest-news/agile-octopus-time-of-use-tariff-pays-customers-to-use-energy-for-first-time-ever/
+                        </a>
+                      </p>
+                      <p>They don't yet, however, take control of your EV charging. Your EV charger may well already connect to a flexible tariff. If not, then find one that can. If you want to customise this control beyond what your EV charger lets you do, and your charger lets other machines talk to it (ie it allows for API access), there are software products growing around this use case. You could rely on something purpose-built (like Axle Energy), a no-code automation tool (like IFTTT), or you could grow your own solution.</p>
+                      <div className="space-y-1">
+                        <p>
+                          <a 
+                            href="https://octopus.energy/blog/agile-smart-home-diy/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline hover:text-blue-800"
+                          >
+                            https://octopus.energy/blog/agile-smart-home-diy/
+                          </a>
+                        </p>
+                        <p>
+                          <a 
+                            href="https://octopus.energy/blog/ifttt/" 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline hover:text-blue-800"
+                          >
+                            https://octopus.energy/blog/ifttt/
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-blue-800">X:</p>
+                    <p className="ml-4">Okay, so let's say that I'm bothered to switch to a smart electricity supplier & install a smart charger, how much would I save on this setup?</p>
+                  </div>
+                  
+                  <div>
+                    <p className="font-medium text-green-800">Me:</p>
+                    <p className="ml-4">This is a little tricky to work out in advance because your savings will depend on future energy prices which aren't knowable. For storytelling purposes one can use historic prices.</p>
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
         </div>
 
         {/* Base Case Section */}
