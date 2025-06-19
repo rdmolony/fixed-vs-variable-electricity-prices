@@ -315,7 +315,7 @@ const Index = () => {
 
             <div className="space-y-6">
               {/* Primary Cost Chart */}
-              <div className="bg-white rounded-lg p-6 border-2 border-red-200 shadow-lg">
+              <div className="bg-white rounded-lg p-6 border-2 shadow-lg">
                 <p className="text-lg font-semibold text-gray-800 mb-4 text-center">
                   💰 Hourly Electricity Cost (This is what matters!)
                 </p>
@@ -468,22 +468,24 @@ const Index = () => {
                   Scenarios
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                  Now that we understand how the cost of electricity consumption is calculated for fixed and variable time-of-use tariffs, let's explore a few scenarios to understand the impact of time-of-use prices on cost.
+                  Now let's compare fixed to time-of-use pricing for a number of scenarios
                 </p>
-                
+
                 {/* Pricing Toggle */}
-                <div className="flex items-center justify-center gap-4 bg-white rounded-lg p-4 border-2 border-blue-200 max-w-md mx-auto">
-                  <span className={`font-medium transition-colors ${!useFlexiblePricing ? 'text-blue-600' : 'text-gray-500'}`}>
-                    Fixed Tariff
-                  </span>
-                  <Switch
-                    checked={useFlexiblePricing}
-                    onCheckedChange={setUseFlexiblePricing}
-                    className="data-[state=checked]:bg-green-500"
-                  />
-                  <span className={`font-medium transition-colors ${useFlexiblePricing ? 'text-green-600' : 'text-gray-500'}`}>
-                    Flexible Market Prices
-                  </span>
+                <div className="bg-slate-300 rounded-xl p-6 border-2 shadow-md max-w-lg mx-auto">
+                  <div className="flex items-center justify-center gap-6">
+                    <span className={`text-xl font-semibold transition-colors ${!useFlexiblePricing ? 'text-green-600' : 'text-gray-500'}`}>
+                      Fixed Tariff
+                    </span>
+                    <Switch
+                      checked={useFlexiblePricing}
+                      onCheckedChange={setUseFlexiblePricing}
+                      className="data-[state=checked]:bg-green-500 scale-110"
+                    />
+                    <span className={`text-xl font-semibold transition-colors ${useFlexiblePricing ? 'text-green-600' : 'text-gray-500'}`}>
+                      Flexible Market Prices
+                    </span>
+                  </div>
                 </div>
                 
                 {useFlexiblePricing && (
@@ -556,7 +558,7 @@ const Index = () => {
 
           <div className="space-y-8 text-left max-w-5xl mx-auto">
             {/* Primary Cost Visualization - Emphasized */}
-            <div className="bg-white rounded-lg p-8 border-2 border-red-200 shadow-xl">
+            <div className="bg-white rounded-lg p-8 border-2  shadow-xl">
               <p className="text-2xl font-bold text-gray-800 mb-6 text-center">
                 💰 Hourly Electricity Cost
               </p>
@@ -808,9 +810,9 @@ const Index = () => {
             </div>
           </div>
           <Collapsible>
-              <CollapsibleTrigger className="flex items-center justify-center w-full bg-blue-50 hover:bg-blue-100 rounded-lg p-4 mb-8 transition-colors">
-                <span className="text-lg font-semibold text-blue-900 mr-2">Are flexible prices all I need?</span>
-                <ChevronDown className="h-5 w-5 text-blue-700" />
+              <CollapsibleTrigger className="flex items-center justify-center w-full bg-slate-300 hover:bg-blue-100 rounded-lg p-4 mb-8 transition-colors">
+                <span className="text-lg font-semibold  mr-2">Are flexible prices all I need?</span>
+                <ChevronDown className="h-5 w-5" />
               </CollapsibleTrigger>
               <CollapsibleContent className="bg-white border border-blue-200 rounded-b-lg p-6 text-left">
                 <div className="space-y-4 text-gray-700">
