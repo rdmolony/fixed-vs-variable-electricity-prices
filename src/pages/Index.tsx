@@ -144,6 +144,45 @@ const Index = () => {
   };
 
   const introData = generateIntroData();
+  
+  // Generate market price example for Learn section (using windy night as example)
+  const generateMarketPriceExample = () => {
+    const data = [];
+    const marketPrices = [
+      2, 1, 0.5, 0.2, -1, -2, -0.5, 0.8, // 00:00-07:00 (very cheap/negative due to wind)
+      5, 8, 12, 15, 18, 22, 25, 28, // 08:00-15:00 (morning/afternoon peak)
+      32, 35, 30, 25, 18, 12, 8, 4  // 16:00-23:00 (evening peak then declining)
+    ];
+    
+    for (let hour = 0; hour < 24; hour++) {
+      // EV charging between 00:00 and 11:00 (11 hours total)
+      let consumption = 0;
+      if (hour >= 0 && hour < 11) {
+        consumption = 3.6; // Full 3.6kW charging
+      }
+      
+      // Fixed vs market rates
+      const fixedRate = (hour >= 23 || hour < 8) ? 20 : 30;
+      const marketRate = marketPrices[hour];
+      
+      // Calculate costs
+      const fixedCost = consumption * fixedRate;
+      const marketCost = Math.max(0, consumption * marketRate); // Don't go below 0 for display
+      
+      data.push({
+        hour: `${hour.toString().padStart(2, '0')}:00`,
+        consumption,
+        fixedRate,
+        marketRate,
+        fixedCost,
+        marketCost,
+        isCharging: consumption > 0,
+      });
+    }
+    return data;
+  };
+  
+  const marketPriceData = generateMarketPriceExample();
   const scenarioData = generateScenarioData();
 
   // Calculate total costs for display
@@ -311,6 +350,112 @@ const Index = () => {
               </div>
 
             </div>
+            
+            {/* New section: Market Price Volatility */}
+            <div className="mt-12">
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">But what if I switch to market-based pricing?</h3>
+              <p className="text-gray-700 mb-6">
+                What if instead of a fixed tariff, I switch to a time-of-use tariff based on electricity market prices? 
+                My hourly unit rates would become much more volatile...
+              </p>
+              
+              <div className="bg-white rounded-lg p-6 border border-orange-200">
+                <p className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                  📈 Market Price Volatility (Example: Windy Night)
+                </p>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={marketPriceData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                      <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                      <YAxis 
+                        domain={[-5, 40]} 
+                        tick={{ fontSize: 12 }}
+                        label={{ value: 'Unit Rate (p/kWh)', angle: -90, position: 'outside' }}
+                      />
+                      <ReferenceLine y={0} stroke="#ef4444" strokeDasharray="2 2" />
+                      
+                      {/* Fixed rate baseline */}
+                      <Line
+                        type="monotone"
+                        dataKey="fixedRate"
+                        stroke="#6b7280"
+                        strokeWidth={2}
+                        strokeDasharray="4 4"
+                        dot={{ fill: "#6b7280", strokeWidth: 1, r: 2 }}
+                        name="Fixed Tariff"
+                      />
+                      
+                      {/* Volatile market rates */}
+                      <Line
+                        type="monotone"
+                        dataKey="marketRate"
+                        stroke="#ea580c"
+                        strokeWidth={3}
+                        dot={{ fill: "#ea580c", strokeWidth: 2, r: 3 }}
+                        name="Market Price"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className="text-center text-sm text-orange-700 mt-2">
+                  Notice the dramatic price swings - from negative to 35p/kWh!
+                </p>
+              </div>
+              
+              <div className="mt-8">
+                <h3 className="text-xl font-semibold text-gray-800 mb-4">What does this do to my cost?</h3>
+                <p className="text-gray-700 mb-6">
+                  The same charging pattern (00:00-11:00) now results in very different costs depending on market conditions:
+                </p>
+                
+                <div className="bg-white rounded-lg p-6 border-2 border-orange-200 shadow-lg">
+                  <p className="text-lg font-semibold text-gray-800 mb-4 text-center">
+                    💰 Fixed vs Market-Based Charging Costs
+                  </p>
+                  <div className="h-64">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={marketPriceData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                        <XAxis dataKey="hour" tick={{ fontSize: 12 }} />
+                        <YAxis 
+                          domain={[0, 120]} 
+                          tick={{ fontSize: 12 }}
+                          label={{ value: 'Cost (pence/hour)', angle: -90, position: 'outside' }}
+                        />
+                        
+                        {/* Fixed cost baseline */}
+                        <Line
+                          type="monotone"
+                          dataKey="fixedCost"
+                          stroke="#6b7280"
+                          strokeWidth={2}
+                          strokeDasharray="4 4"
+                          dot={{ fill: "#6b7280", strokeWidth: 1, r: 2 }}
+                          name="Fixed Tariff Cost"
+                        />
+                        
+                        {/* Market cost line - emphasized */}
+                        <Line
+                          type="monotone"
+                          dataKey="marketCost"
+                          stroke="#ea580c"
+                          strokeWidth={4}
+                          dot={{ fill: "#ea580c", strokeWidth: 2, r: 4 }}
+                          name="Market Price Cost"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="text-center text-sm mt-2 space-y-1">
+                    <p>
+                      <span className="font-semibold text-gray-700">Fixed tariff total: £7.92</span> |
+                      <span className="font-semibold text-orange-600 ml-2">Market price total: £{((marketPriceData.reduce((sum, hour) => sum + hour.marketCost, 0))/100).toFixed(2)}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
             </div>
           </TabsContent>
@@ -323,7 +468,7 @@ const Index = () => {
                   Scenarios
                 </h2>
                 <p className="text-gray-600 max-w-2xl mx-auto mb-6">
-                  Now that we understand how the cost of electricity consumption is calculated, let's explore a few scenarios to understand the impact of time-of-use prices on cost.
+                  Now that we understand how the cost of electricity consumption is calculated for fixed and variable time-of-use tariffs, let's explore a few scenarios to understand the impact of time-of-use prices on cost.
                 </p>
                 
                 {/* Pricing Toggle */}
