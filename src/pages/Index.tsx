@@ -221,6 +221,7 @@ const Index = () => {
               </a>
             </p>
           </div>
+        </div>
 
         <Tabs defaultValue="learn" className="max-w-6xl mx-auto">
           <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -908,14 +909,14 @@ const Index = () => {
               </CollapsibleContent>
             </Collapsible>
           </TabsContent>
-          <TabsList className="grid w-full grid-cols-2 mb-8">
+
+          <TabsList className="grid w-full grid-cols-2 mt-8">
             <TabsTrigger value="learn">📚 Learn the Basics</TabsTrigger>
             <TabsTrigger value="scenarios">🔧 Explore Scenarios</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
     </div>
-  </div>
   );
 };
 
