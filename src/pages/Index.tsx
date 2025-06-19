@@ -11,6 +11,7 @@ const Index = () => {
   const [hoveredHour, setHoveredHour] = useState<string | null>(null);
   const [useFlexiblePricing, setUseFlexiblePricing] = useState(false);
   const [scenario, setScenario] = useState<'windy-night' | 'sunny-day' | 'grid-stress'>('windy-night');
+  const [useEnergyOptimization, setUseEnergyOptimization] = useState(false);
 
   // Generate flexible market prices based on scenario
   const generateFlexiblePrices = () => {
@@ -38,17 +39,47 @@ const Index = () => {
     }
   };
 
+  // Optimize charging schedule based on prices
+  const optimizeChargingSchedule = (prices: number[]) => {
+    const totalEnergyNeeded = 39.6; // kWh
+    const maxChargeRate = 3.6; // kW per hour
+    const hoursNeeded = Math.ceil(totalEnergyNeeded / maxChargeRate); // 11 hours
+    
+    // Create array of hours with their prices and sort by cheapest first
+    const hourPrices = prices.map((price, hour) => ({ hour, price }))
+      .sort((a, b) => a.price - b.price);
+    
+    // Select the cheapest hours for charging
+    const selectedHours = new Set(hourPrices.slice(0, hoursNeeded).map(hp => hp.hour));
+    
+    return selectedHours;
+  };
+
   // Generate demonstration data
   const generateScenarioData = () => {
     const data = [];
     const flexiblePrices = generateFlexiblePrices();
     
+    // Get optimized charging schedule if optimization is enabled
+    const optimizedHours = useEnergyOptimization && useFlexiblePricing ? 
+      optimizeChargingSchedule(flexiblePrices) : new Set();
+    
     for (let hour = 0; hour < 24; hour++) {
-      // EV charging between 00:00 and 11:00 (11 hours total)
-      let consumption = 0;
+      // Manual EV charging between 00:00 and 11:00 (11 hours total)
+      let manualConsumption = 0;
       if (hour >= 0 && hour < 11) {
-        consumption = 3.6; // Full 3.6kW charging
+        manualConsumption = 3.6; // Full 3.6kW charging
       }
+      
+      // Optimized charging only during cheapest hours
+      let optimizedConsumption = 0;
+      if (optimizedHours.has(hour)) {
+        optimizedConsumption = 3.6;
+      }
+      
+      // Choose consumption based on optimization setting
+      const consumption = (useEnergyOptimization && useFlexiblePricing) ? 
+        optimizedConsumption : manualConsumption;
       
       // Fixed tariff rates
       const fixedRate = (hour >= 23 || hour < 8) ? 20 : 30;
@@ -56,21 +87,27 @@ const Index = () => {
       // Choose pricing based on toggle
       const unitRate = useFlexiblePricing ? flexiblePrices[hour] : fixedRate;
       
-      // Calculate costs for both scenarios
-      const fixedCost = consumption * fixedRate;
-      const flexibleCost = Math.max(0, consumption * flexiblePrices[hour]); // Don't go below 0 for display
-      const cost = useFlexiblePricing ? flexibleCost : fixedCost;
+      // Calculate costs for all scenarios
+      const fixedCost = manualConsumption * fixedRate;
+      const flexibleCost = Math.max(0, manualConsumption * flexiblePrices[hour]);
+      const optimizedCost = Math.max(0, optimizedConsumption * flexiblePrices[hour]);
+      const cost = (useEnergyOptimization && useFlexiblePricing) ? optimizedCost : 
+                   useFlexiblePricing ? flexibleCost : fixedCost;
       
       data.push({
         hour: `${hour.toString().padStart(2, '0')}:00`,
         consumption,
+        manualConsumption,
+        optimizedConsumption,
         unitRate,
-        fixedRate, // Always include fixed rate for comparison
-        flexibleRate: flexiblePrices[hour], // Always include flexible rate
+        fixedRate,
+        flexibleRate: flexiblePrices[hour],
         cost,
-        fixedCost, // Always include fixed cost for comparison
-        flexibleCost, // Always include flexible cost
+        fixedCost,
+        flexibleCost,
+        optimizedCost,
         isCharging: consumption > 0,
+        isOptimalPeriod: optimizedHours.has(hour),
         isCheapPeriod: useFlexiblePricing ? unitRate < 10 : (hour >= 23 || hour < 8),
         isNegativePrice: useFlexiblePricing && unitRate < 0
       });
@@ -112,7 +149,9 @@ const Index = () => {
   // Calculate total costs for display
   const totalFixedCost = scenarioData.reduce((sum, hour) => sum + hour.fixedCost, 0);
   const totalFlexibleCost = scenarioData.reduce((sum, hour) => sum + hour.flexibleCost, 0);
-  const totalCost = useFlexiblePricing ? totalFlexibleCost : totalFixedCost;
+  const totalOptimizedCost = scenarioData.reduce((sum, hour) => sum + hour.optimizedCost, 0);
+  const totalCost = (useEnergyOptimization && useFlexiblePricing) ? totalOptimizedCost :
+                   useFlexiblePricing ? totalFlexibleCost : totalFixedCost;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
@@ -430,6 +469,29 @@ const Index = () => {
                         </p>
                       )}
                     </div>
+                    
+                    {/* Energy Optimization Toggle */}
+                    <div className="bg-white rounded-lg p-4 border border-gray-200 max-w-md mx-auto">
+                      <p className="text-sm font-medium text-gray-700 mb-3 text-center">Charging Strategy:</p>
+                      <div className="flex items-center justify-center gap-4">
+                        <span className={`text-sm font-medium transition-colors ${!useEnergyOptimization ? 'text-blue-600' : 'text-gray-500'}`}>
+                          Manual (00:00-11:00)
+                        </span>
+                        <Switch
+                          checked={useEnergyOptimization}
+                          onCheckedChange={setUseEnergyOptimization}
+                          className="data-[state=checked]:bg-purple-500"
+                        />
+                        <span className={`text-sm font-medium transition-colors ${useEnergyOptimization ? 'text-purple-600' : 'text-gray-500'}`}>
+                          🤖 Smart Optimization
+                        </span>
+                      </div>
+                      {useEnergyOptimization && (
+                        <p className="text-xs text-purple-700 text-center mt-2">
+                          Automatically charges during the cheapest hours
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -465,16 +527,42 @@ const Index = () => {
                       name="Fixed Tariff Cost"
                     />
                     
-                    {/* Flexible cost - overlaid in color when active */}
-                    {useFlexiblePricing && (
+                    {/* Manual flexible cost - shown when flexible but not optimized */}
+                    {useFlexiblePricing && !useEnergyOptimization && (
                       <Line
                         type="monotone"
                         dataKey="flexibleCost"
                         stroke="#10b981"
                         strokeWidth={4}
                         dot={{ fill: "#10b981", strokeWidth: 2, r: 4 }}
-                        name="Market Price Cost"
+                        name="Manual Market Price Cost"
                       />
+                    )}
+                    
+                    {/* Show both manual and optimized when optimization is enabled */}
+                    {useFlexiblePricing && useEnergyOptimization && (
+                      <>
+                        {/* Manual flexible cost - de-emphasized */}
+                        <Line
+                          type="monotone"
+                          dataKey="flexibleCost"
+                          stroke="#d1d5db"
+                          strokeWidth={2}
+                          strokeDasharray="4 4"
+                          dot={{ fill: "#d1d5db", strokeWidth: 1, r: 2 }}
+                          name="Manual Market Price Cost"
+                        />
+                        
+                        {/* Optimized cost - emphasized */}
+                        <Line
+                          type="monotone"
+                          dataKey="optimizedCost"
+                          stroke="#8b5cf6"
+                          strokeWidth={4}
+                          dot={{ fill: "#8b5cf6", strokeWidth: 2, r: 4 }}
+                          name="Optimized Market Price Cost"
+                        />
+                      </>
                     )}
                   </LineChart>
                 </ResponsiveContainer>
@@ -482,28 +570,70 @@ const Index = () => {
               <div className="text-center mt-4">
                 {useFlexiblePricing ? (
                   <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">Fixed Tariff</p>
-                        <p className="text-lg font-semibold text-gray-700">
-                          £{(totalFixedCost/100).toFixed(2)}
-                        </p>
+                    {useEnergyOptimization ? (
+                      <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600">Fixed Tariff</p>
+                          <p className="text-sm font-semibold text-gray-700">
+                            £{(totalFixedCost/100).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600">Manual Flexible</p>
+                          <p className={`text-sm font-semibold ${totalFlexibleCost < totalFixedCost ? 'text-green-600' : 'text-red-600'}`}>
+                            £{(totalFlexibleCost/100).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-xs text-gray-600">🤖 Optimized</p>
+                          <p className="text-lg font-semibold text-purple-600">
+                            £{(totalOptimizedCost/100).toFixed(2)}
+                          </p>
+                        </div>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm text-gray-600">Market Price</p>
-                        <p className={`text-lg font-semibold ${totalFlexibleCost < totalFixedCost ? 'text-green-600' : 'text-red-600'}`}>
-                          £{(totalFlexibleCost/100).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                    {totalFlexibleCost < totalFixedCost ? (
-                      <p className="text-sm text-green-700 font-medium">
-                        💰 Savings: £{((totalFixedCost - totalFlexibleCost)/100).toFixed(2)}
-                      </p>
                     ) : (
-                      <p className="text-sm text-red-700 font-medium">
-                        📈 Extra cost: £{((totalFlexibleCost - totalFixedCost)/100).toFixed(2)}
-                      </p>
+                      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600">Fixed Tariff</p>
+                          <p className="text-lg font-semibold text-gray-700">
+                            £{(totalFixedCost/100).toFixed(2)}
+                          </p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-gray-600">Market Price</p>
+                          <p className={`text-lg font-semibold ${totalFlexibleCost < totalFixedCost ? 'text-green-600' : 'text-red-600'}`}>
+                            £{(totalFlexibleCost/100).toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    {useEnergyOptimization ? (
+                      <div className="space-y-1">
+                        {totalOptimizedCost < totalFixedCost ? (
+                          <p className="text-sm text-purple-700 font-medium">
+                            🤖 Smart savings vs fixed: £{((totalFixedCost - totalOptimizedCost)/100).toFixed(2)}
+                          </p>
+                        ) : (
+                          <p className="text-sm text-red-700 font-medium">
+                            📈 Extra cost vs fixed: £{((totalOptimizedCost - totalFixedCost)/100).toFixed(2)}
+                          </p>
+                        )}
+                        {totalOptimizedCost < totalFlexibleCost && (
+                          <p className="text-xs text-purple-600">
+                            ⚡ Optimization saves £{((totalFlexibleCost - totalOptimizedCost)/100).toFixed(2)} vs manual flexible
+                          </p>
+                        )}
+                      </div>
+                    ) : (
+                      totalFlexibleCost < totalFixedCost ? (
+                        <p className="text-sm text-green-700 font-medium">
+                          💰 Savings: £{((totalFixedCost - totalFlexibleCost)/100).toFixed(2)}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-red-700 font-medium">
+                          📈 Extra cost: £{((totalFlexibleCost - totalFixedCost)/100).toFixed(2)}
+                        </p>
+                      )
                     )}
                     <p className="text-xs text-gray-600">
                       {scenario === 'windy-night' ? 'With flexible market pricing on this windy night' :
@@ -572,7 +702,7 @@ const Index = () => {
               {/* Consumption Chart - De-emphasized */}
               <div className="bg-gray-50 rounded-lg p-4 border border-gray-200 opacity-75">
                 <p className="text-sm font-medium text-gray-600 mb-3 text-center">
-                  Hourly Energy Consumption
+                  {useEnergyOptimization && useFlexiblePricing ? "Manual vs Optimized Charging" : "Hourly Energy Consumption"}
                 </p>
                 <div className="h-48">
                   <ResponsiveContainer width="100%" height="100%">
@@ -584,13 +714,29 @@ const Index = () => {
                         tick={{ fontSize: 10 }}
                         label={{ value: 'Consumption (kW)', angle: -90, position: 'outside' }}
                       />
+                      
+                      {/* Manual charging pattern - always shown */}
                       <Line
                         type="monotone"
-                        dataKey="consumption"
+                        dataKey="manualConsumption"
                         stroke="#6b7280"
                         strokeWidth={2}
+                        strokeDasharray={useEnergyOptimization && useFlexiblePricing ? "4 4" : "0"}
                         dot={{ fill: '#6b7280', strokeWidth: 1, r: 2 }}
+                        name="Manual Charging"
                       />
+                      
+                      {/* Optimized charging pattern - when enabled */}
+                      {useEnergyOptimization && useFlexiblePricing && (
+                        <Line
+                          type="monotone"
+                          dataKey="optimizedConsumption"
+                          stroke="#8b5cf6"
+                          strokeWidth={3}
+                          dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 3 }}
+                          name="Optimized Charging"
+                        />
+                      )}
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
