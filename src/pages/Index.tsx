@@ -81,7 +81,7 @@ const Index = () => {
       const consumption = (useEnergyOptimization && useFlexiblePricing) ? 
         optimizedConsumption : manualConsumption;
       
-      // Fixed tariff rates
+      // Fixed price
       const fixedRate = (hour >= 23 || hour < 8) ? 20 : 30;
       
       // Choose pricing based on toggle
@@ -125,7 +125,7 @@ const Index = () => {
         consumption = 3.6; // Full 3.6kW charging
       }
       
-      // Fixed tariff: 20p night (23:00-08:00), 30p day (08:00-23:00)
+      // Fixed price: 20p night (23:00-08:00), 30p day (08:00-23:00)
       const unitRate = (hour >= 23 || hour < 8) ? 20 : 30;
       
       // Calculate cost (pence per hour)
@@ -197,12 +197,12 @@ const Index = () => {
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            What's the value in time-of-use electricity prices?
+            How does flexible electricity prices compare to fixed?
           </h1>
           <div className="text-xl text-gray-600 max-w-4xl mx-auto mb-6">
             <p className="pb-4">
               Let's explore a number of scenarios to get a feel for how 
-              switching to time-of-use electricity tariffs might impact electricity spend and demand.
+              switching to time-of-use electricity prices might impact electricity spend and demand.
             </p>
             <p>But first some background.</p>
           </div>
@@ -279,7 +279,7 @@ const Index = () => {
               
               <div>
                 <p className="text-gray-700 mb-4 mt-8">
-                  And I'm on a fixed tariff of 20p/kWh during the night and 30p/kWh during the day.
+                  And I'm on a fixed price of 20p/kWh during the night and 30p/kWh during the day.
                 </p>
                 <div className="bg-white rounded-lg p-6 border">
                   <p className="text-lg font-semibold text-gray-800 mb-4 text-center">
@@ -357,7 +357,7 @@ const Index = () => {
             <div className="mt-12">
               <h3 className="text-xl font-semibold text-gray-800 mb-4">But what if I switch to market-based pricing?</h3>
               <p className="text-gray-700 mb-6">
-                What if instead of a fixed tariff, I switch to a time-of-use tariff based on electricity market prices? 
+                What if instead of a fixed price, I switch to a time-of-use price based on electricity market prices? 
                 My hourly unit rates would become much more volatile...
               </p>
               
@@ -385,7 +385,7 @@ const Index = () => {
                         strokeWidth={2}
                         strokeDasharray="4 4"
                         dot={{ fill: "#6b7280", strokeWidth: 1, r: 2 }}
-                        name="Fixed Tariff"
+                        name="Fixed Prices"
                       />
                       
                       {/* Volatile market rates */}
@@ -434,7 +434,7 @@ const Index = () => {
                           strokeWidth={2}
                           strokeDasharray="4 4"
                           dot={{ fill: "#6b7280", strokeWidth: 1, r: 2 }}
-                          name="Fixed Tariff Cost"
+                          name="Cost of Fixed Prices"
                         />
                         
                         {/* Market cost line - emphasized */}
@@ -444,14 +444,14 @@ const Index = () => {
                           stroke="#ea580c"
                           strokeWidth={4}
                           dot={{ fill: "#ea580c", strokeWidth: 2, r: 4 }}
-                          name="Market Price Cost"
+                          name="Cost of Market Prices"
                         />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                   <div className="text-center text-sm mt-2 space-y-1">
                     <p>
-                      <span className="font-semibold text-gray-700">Fixed tariff total: £7.92</span> |
+                      <span className="font-semibold text-gray-700">Fixed price total: £7.92</span> |
                       <span className="font-semibold text-orange-600 ml-2">Market price total: £{((marketPriceData.reduce((sum, hour) => sum + hour.marketCost, 0))/100).toFixed(2)}</span>
                     </p>
                   </div>
@@ -477,7 +477,7 @@ const Index = () => {
                 <div className="bg-slate-300 rounded-xl p-6 border-2 shadow-md max-w-lg mx-auto">
                   <div className="flex items-center justify-center gap-6">
                     <span className={`text-xl font-semibold transition-colors ${!useFlexiblePricing ? 'text-green-600' : 'text-gray-500'}`}>
-                      Fixed Tariff
+                      Fixed Price
                     </span>
                     <Switch
                       checked={useFlexiblePricing}
@@ -586,7 +586,7 @@ const Index = () => {
                       stroke="#374151"
                       strokeWidth={3}
                       dot={{ fill: "#374151", strokeWidth: 2, r: 3 }}
-                      name="Fixed Tariff Cost"
+                      name="Cost of Fixed Price"
                     />
                     
                     {/* Manual flexible cost - shown when flexible but not optimized */}
@@ -635,7 +635,7 @@ const Index = () => {
                     {useEnergyOptimization ? (
                       <div className="grid grid-cols-3 gap-3 max-w-lg mx-auto">
                         <div className="text-center">
-                          <p className="text-xs text-gray-600">Fixed Tariff</p>
+                          <p className="text-xs text-gray-600">Fixed Price</p>
                           <p className="text-sm font-semibold text-gray-700">
                             £{(totalFixedCost/100).toFixed(2)}
                           </p>
@@ -656,7 +656,7 @@ const Index = () => {
                     ) : (
                       <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
                         <div className="text-center">
-                          <p className="text-sm text-gray-600">Fixed Tariff</p>
+                          <p className="text-sm text-gray-600">Fixed Price</p>
                           <p className="text-lg font-semibold text-gray-700">
                             £{(totalFixedCost/100).toFixed(2)}
                           </p>
@@ -709,7 +709,7 @@ const Index = () => {
                       Total daily cost: £{(totalCost/100).toFixed(2)}
                     </p>
                     <p className="text-sm text-gray-600 mt-1">
-                      With a fixed tariff baseline
+                      With a fixed price baseline
                     </p>
                   </div>
                 )}
@@ -742,7 +742,7 @@ const Index = () => {
                         stroke="#374151"
                         strokeWidth={2}
                         dot={{ fill: "#374151", strokeWidth: 1, r: 2 }}
-                        name="Fixed Tariff"
+                        name="Fixed Price"
                       />
                       
                       {/* Flexible rates - overlaid in color when active */}
@@ -835,7 +835,7 @@ const Index = () => {
                   
                   <div>
                     <p className="font-medium text-green-800">Me:</p>
-                    <p className="ml-4">Typically electricity suppliers will charge you a fixed rate on your electricity depending on when you use it. You might be charged a night time tariff between 23:00 and 08:00, and a day time tariff between 08:00 and 23:00. If you charge your EV during the cheaper period you'll save money. If instead, you have access to flexible electricity rates, you could save more again.</p>
+                    <p className="ml-4">Typically electricity suppliers will charge you a fixed rate on your electricity depending on when you use it. You might be charged a night time price between 23:00 and 08:00, and a day time price between 08:00 and 23:00. If you charge your EV during the cheaper period you'll save money. If instead, you have access to flexible electricity rates, you could save more again.</p>
                   </div>
                   
                   <div>
@@ -866,7 +866,7 @@ const Index = () => {
                   <div>
                     <p className="font-medium text-green-800">Me:</p>
                     <div className="ml-4 space-y-2">
-                      <p>This depends on where you live. Octopus Energy, a UK-based electricity supplier, first announced flexible tariffs (Agile Octopus) <a 
+                      <p>This depends on where you live. Octopus Energy, a UK-based electricity supplier, first announced flexible prices (Agile Octopus) <a 
                           href="https://octopusgroup.com/newsroom/latest-news/agile-octopus-time-of-use-tariff-pays-customers-to-use-energy-for-first-time-ever/" 
                           target="_blank" 
                           rel="noopener noreferrer"
@@ -877,7 +877,7 @@ const Index = () => {
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-blue-600 underline hover:text-blue-800"
-                          >take control of your EV charging</a>. Your EV charger may well already connect to a flexible tariff. If not, then find one that can. If you want to customise this control beyond what your EV charger lets you do, and your charger lets other machines talk to it (ie it allows for API access), there are software products growing around this use case. You could rely on something purpose-built (like Axle Energy), a no-code automation tool (like <a 
+                          >take control of your EV charging</a>. Your EV charger may well already connect to flexible prices. If not, then find one that can. If you want to customise this control beyond what your EV charger lets you do, and your charger lets other machines talk to it (ie it allows for API access), there are software products growing around this use case. You could rely on something purpose-built (like Axle Energy), a no-code automation tool (like <a 
                         href="https://octopus.energy/blog/ifttt/" 
                         target="_blank" 
                         rel="noopener noreferrer"

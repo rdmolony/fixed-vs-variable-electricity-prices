@@ -19,5 +19,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: '/visualise-electricity-flexibility/',
+  base: '/fixed-vs-variable-electricity-prices/',
 }));
