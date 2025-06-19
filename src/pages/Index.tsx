@@ -916,6 +916,35 @@ const Index = () => {
           </TabsList>
         </Tabs>
       </div>
+      
+      {/* Footer */}
+      <footer className="bg-gray-50 border-t border-gray-200 py-8">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 text-sm text-gray-600">
+            <p>
+              Interested in the code behind this tool? 
+              <a 
+                href="https://github.com/rdmolony/fixed-vs-variable-electricity-prices" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-blue-600 underline hover:text-blue-800 ml-1"
+              >
+                Check out the open source repository
+              </a>
+            </p>
+            <span className="hidden sm:inline text-gray-400">|</span>
+            <p>
+              Questions or feedback? 
+              <a 
+                href="mailto:rowanmolony@gmail.com" 
+                className="text-blue-600 underline hover:text-blue-800 ml-1"
+              >
+                Email me
+              </a>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
